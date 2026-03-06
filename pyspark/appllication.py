@@ -13,9 +13,11 @@ from pyspark.sql.functions import *
 from time import sleep
 from random import random, randint, choice
 from displayfunction import display
+from dotenv import load_dotenv
 
-os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-21-openjdk-amd64'
-findspark.init("/opt/spark")
+load_dotenv("../.env")
+os.environ['JAVA_HOME'] = os.getenv("JAVA_HOME")
+findspark.init(os.getenv("SPARK_HOME"))
 
 session = SparkSession.builder \
     .master("local[*]") \
