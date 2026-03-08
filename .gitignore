@@ -14,6 +14,7 @@
 
 #Local env
 .env
+frontend/src/.env
 
 # Logs
 logs
