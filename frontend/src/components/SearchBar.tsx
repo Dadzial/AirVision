@@ -1,7 +1,7 @@
 import { useCesium } from "resium";
 import { Cartesian3 } from "cesium";
 import { useState } from "react";
-
+import {getIcon} from "../utils/IconParser.tsx";
 interface SearchResult {
     lat: string;
     lon: string;
@@ -12,6 +12,7 @@ export default function SearchBar() {
     const { viewer } = useCesium();
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const iconSrc = getIcon("search")
 
     const handleSearch = async () => {
         if (!viewer || !searchQuery.trim()) return;
@@ -50,45 +51,57 @@ export default function SearchBar() {
 
     return (
         <div style={{
-            position: "absolute",
-            top: 10,
-            right: 10,
-            zIndex: 1000,
-            background: "white",
-            padding: "8px",
-            borderRadius: 4,
-            border: "1px solid #ccc",
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            padding: "6px",
+            borderRadius: "8px",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
             display: "flex",
-            gap: "4px"
+            alignItems: "center",
+            gap: "8px",
+            minWidth: "280px"
         }}>
+            <img
+                src={iconSrc}
+                alt="Search"
+                style={{
+                    width: "20px",
+                    height: "20px",
+                    opacity: 0.7
+                }}
+            />
             <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Search city (e.g., Warsaw)"
+                placeholder="Search location..."
                 disabled={isLoading}
                 style={{
-                    padding: "4px 8px",
-                    border: "1px solid #ddd",
-                    borderRadius: 3,
-                    minWidth: "200px"
+                    flex: 1,
+                    padding: "6px 8px",
+                    border: "none",
+                    background: "transparent",
+                    outline: "none",
+                    fontSize: "14px",
+                    color: "#333"
                 }}
             />
-            <button
+            <div
                 onClick={handleSearch}
-                disabled={isLoading}
                 style={{
-                    padding: "4px 12px",
-                    background: isLoading ? "#ccc" : "#007bff",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 3,
-                    cursor: isLoading ? "not-allowed" : "pointer"
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: isLoading ? "not-allowed" : "pointer",
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "6px",
+                    transition: "background 0.2s ease"
                 }}
             >
-                {isLoading ? "..." : "Search"}
-            </button>
+            </div>
         </div>
     );
 }

@@ -4,6 +4,8 @@ import { CESIUM_ION_TOKEN } from "../config/config.ts";
 import styles from './MainPage.module.css';
 import HomeCameraButton from "../components/HomeCameraButton.tsx";
 import SearchBar from "../components/SearchBar.tsx";
+import Header from "../components/Header.tsx";
+
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
 
@@ -12,6 +14,7 @@ export default function MainPage() {
 
     return (
         <div className={styles.mainContainer}>
+            <Header/>
             <Viewer
                 full
                 baseLayerPicker={false}
@@ -22,10 +25,12 @@ export default function MainPage() {
                 fullscreenButton={false}
                 sceneModePicker={false}
                 homeButton={false}
-
+                geocoder={false}
             >
-                <HomeCameraButton/>
-                <SearchBar/>
+                <div className={styles.controls}>
+                    <SearchBar/>
+                    <HomeCameraButton/>
+                </div>
                 <ImageryLayer
                     brightness={1.6}
                     contrast={1}

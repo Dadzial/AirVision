@@ -1,10 +1,11 @@
 import {useCesium} from "resium";
 import {Cartesian3} from "cesium";
+import {getIcon} from "../utils/IconParser.tsx";
 
 export default function HomeCameraButton () {
     const {viewer} = useCesium();
     const homePosition = Cartesian3.fromDegrees(0, 50, 3600000);
-
+    const iconSrc = getIcon("homeIcon")
 
     const goHome = () => {
         if (viewer) {
@@ -18,19 +19,18 @@ export default function HomeCameraButton () {
     return (
         <button
             style={{
-                position: "absolute",
-                top: 10,
-                left: 10,
-                zIndex: 1000,
                 padding: "8px 12px",
                 background: "white",
                 border: "1px solid #ccc",
                 borderRadius: 4,
-                cursor: "pointer"
+                cursor: "pointer",
+                boxShadow: "inherit",
+                transition: "box-shadow 0.2s",
             }}
             onClick={goHome}
         >
-            Home
+            <img src={iconSrc} alt="Home" style={{ width: 30, height: 30 }} />
+
         </button>
     );
 }
