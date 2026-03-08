@@ -1,0 +1,1 @@
+export const CESIUM_ION_TOKEN = import.meta.env.VITE_CESIUM_ION_TOKEN
