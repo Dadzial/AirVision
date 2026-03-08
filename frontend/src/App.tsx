@@ -1,9 +1,9 @@
 import './App.css'
-import {Viewer} from "resium";
-export default function App () {
+import MainPage from "./pages/MainPage.tsx";
 
+export default function App () {
   return (
-    <Viewer full />
+    <MainPage/>
   )
 }
 
