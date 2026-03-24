@@ -44,3 +44,7 @@ dist-ssr
 #Python
 .venv
 
+pyspark/data/training
+pyspark/data/checkpoints
+pyspark/spark-warehouse
+
