@@ -1,10 +1,4 @@
-import pandas
-import pyspark
-import numpy
-import os
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import lag,col, to_timestamp,year,month,dayofmonth
-from delta import configure_spark_with_delta_pip
 from pyspark.sql import DataFrame, Window
 
 
