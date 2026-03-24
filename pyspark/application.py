@@ -7,6 +7,7 @@ from pyspark.sql import SparkSession
 from delta import configure_spark_with_delta_pip
 from data.stream import OpenAQDataSource, fetch_locations_by_country
 from preprocess.data_cleaning import clean_data
+from preprocess.features_engineering import build_features
 from dotenv import load_dotenv
 
 load_dotenv("../.env")
@@ -148,6 +149,7 @@ if training_data_exists():
     print(f"Stations:  {df.select('location_id').distinct().count()}")
     print(f"Countries: {df.select('country').distinct().count()}")
     df = clean_data(df)
+    df = build_features(df)
     df.show(10)
 else:
     locations = load_locations()

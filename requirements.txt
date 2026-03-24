@@ -13,6 +13,7 @@ click==8.3.1
 DBUtils==3.1.2
 decorator==5.2.1
 delta==0.4.2
+delta-spark
 display==1.0.0
 dnspython==2.8.0
 email-validator==2.3.0
