@@ -2,11 +2,11 @@ import os
 import json
 import time
 import shutil
-
 import findspark
 from pyspark.sql import SparkSession
 from delta import configure_spark_with_delta_pip
 from data.stream import OpenAQDataSource, fetch_locations_by_country
+from preprocess.data_cleaning import clean_data
 from dotenv import load_dotenv
 
 load_dotenv("../.env")
@@ -147,12 +147,13 @@ if training_data_exists():
     print(f"Rows:      {df.count()}")
     print(f"Stations:  {df.select('location_id').distinct().count()}")
     print(f"Countries: {df.select('country').distinct().count()}")
-
-    df.show(5)
+    df = clean_data(df)
+    df.show(10)
 else:
     locations = load_locations()
     collect_data(session, locations)
     df = session.read.format("delta").load(TRAINING_DELTA)
+
 
 print("Stopping Spark session...")
 session.stop()
