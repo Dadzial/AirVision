@@ -8,6 +8,7 @@ from delta import configure_spark_with_delta_pip
 from data.stream import OpenAQDataSource, fetch_locations_by_country
 from preprocess.data_cleaning import clean_data
 from preprocess.features_engineering import build_features
+from train.train_model import train_gbt_model
 from dotenv import load_dotenv
 
 load_dotenv("../.env")
@@ -151,6 +152,7 @@ if training_data_exists():
     df = clean_data(df)
     df = build_features(df)
     df.show(10)
+    train_gbt_model(df)
 else:
     locations = load_locations()
     collect_data(session, locations)
