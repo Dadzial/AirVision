@@ -18,7 +18,6 @@ export default function SearchBar() {
         if (!viewer || !searchQuery.trim()) return;
 
         setIsLoading(true);
-
         try {
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`

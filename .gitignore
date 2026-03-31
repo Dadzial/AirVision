@@ -47,4 +47,5 @@ dist-ssr
 pyspark/data/training
 pyspark/data/checkpoints
 pyspark/spark-warehouse
+backend/database/airvision.db
 

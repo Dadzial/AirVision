@@ -22,13 +22,14 @@ export default function Header() {
                 alt="AirVision"
                 style={{
                     width: "24px",
-                    height: "24px"
+                    height: "24px",
+
                 }}
             />
             <span style={{
                 fontSize: "18px",
                 fontWeight: "600",
-                color: "#333",
+                color:"#17C1DF",
                 letterSpacing: "0.5px"
             }}>
                 AirVision

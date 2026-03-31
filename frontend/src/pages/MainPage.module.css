@@ -14,3 +14,28 @@ html, body {
     gap: 8px;
     z-index: 1000;
 }
+.loadingPopup {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    background-color: #ffffff;
+    color: #454547;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 400;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translate(-50%, 150%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}

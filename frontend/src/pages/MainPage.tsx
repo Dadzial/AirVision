@@ -1,16 +1,31 @@
-import {Viewer, ImageryLayer,CameraFlyTo} from "resium";
+import {Viewer, ImageryLayer,CameraFlyTo,Entity} from "resium";
 import { UrlTemplateImageryProvider, Ion, Cartesian3 } from "cesium";
 import { CESIUM_ION_TOKEN } from "../config/config.ts";
 import styles from './MainPage.module.css';
 import HomeButton from "../components/HomeButton.tsx";
 import SearchBar from "../components/SearchBar.tsx";
 import Header from "../components/Header.tsx";
-
+import {useEffect, useState} from "react";
+import { fetchStations, type Station } from "../services/FetchStations.ts";
+import {getIcon} from "../utils/IconParser.tsx";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
 
 export default function MainPage() {
     const homePosition = Cartesian3.fromDegrees(0, 50, 3600000);
+    const [stations, setStations] = useState<Station[]>([]);
+    const [loading,setLoading] = useState<boolean>(true);
+    const greenIcon = getIcon("greenStateIcon")
+
+    useEffect(() => {
+       const loadAirStations = async () => {
+         const  data = await fetchStations();
+         setStations(data);
+         setLoading(false);
+       };
+
+       loadAirStations();
+    },[])
 
     return (
         <div className={styles.mainContainer}>
@@ -27,6 +42,12 @@ export default function MainPage() {
                 homeButton={false}
                 geocoder={false}
             >
+                {loading && (
+                    <div className={styles.loadingPopup}>
+                        Loading stations...
+                    </div>
+                )}
+
                 <div className={styles.controls}>
                     <SearchBar/>
                     <HomeButton/>
@@ -42,8 +63,21 @@ export default function MainPage() {
                         })
                     }
                 />
-
                 <CameraFlyTo destination={homePosition}  />
+
+                {stations.map(station => (
+                    <Entity
+                        key={station.id}
+                        name={station.name}
+                        description={`Localization: ${station.city} (${station.country})`}
+                        position={Cartesian3.fromDegrees(station.lng, station.lat)}
+                        billboard={{
+                            image: greenIcon,
+                            scale: 0.01,
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY
+                        }}
+                    />
+                ))}
             </Viewer>
         </div>
     );
