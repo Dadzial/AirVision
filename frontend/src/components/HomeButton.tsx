@@ -2,7 +2,7 @@ import {useCesium} from "resium";
 import {Cartesian3} from "cesium";
 import {getIcon} from "../utils/IconParser.tsx";
 
-export default function HomeCameraButton () {
+export default function HomeButton () {
     const {viewer} = useCesium();
     const homePosition = Cartesian3.fromDegrees(0, 50, 3600000);
     const iconSrc = getIcon("homeIcon")

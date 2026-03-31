@@ -9,12 +9,15 @@ from data.stream import OpenAQDataSource, fetch_locations_by_country
 from preprocess.data_cleaning import clean_data
 from preprocess.features_engineering import build_features
 from train.train_model import train_gbt_model
+from pyspark.sql.functions import unix_timestamp, col
 from dotenv import load_dotenv
 
+#Loading env and spark
 load_dotenv("../.env")
 os.environ['JAVA_HOME'] = os.getenv("JAVA_HOME")
 findspark.init(os.getenv("SPARK_HOME"))
 
+# Define paths
 BASE_DIR         = os.path.dirname(os.path.abspath(__file__))
 CACHE_PATH       = os.path.join(BASE_DIR, "data", "locations_cache.json")
 PARQUET_PATH     = os.path.join(BASE_DIR, "data", "parquet", "air_quality")
@@ -23,23 +26,26 @@ TRAINING_DIR     = os.path.join(BASE_DIR, "data", "training")
 TRAINING_DELTA   = os.path.join(TRAINING_DIR, "air_quality_training_data")
 TRAINING_CSV     = os.path.join(TRAINING_DIR, "air_quality_csv")
 
+#Building of spark session
 builder = (SparkSession.builder
-           .master("local[1]")
+           .master("local[*]")
            .appName("AirVision")
            .config("spark.sql.shuffle.partitions", "50")
+           .config("spark.driver.memory", "8g")
+           .config("spark.executor.memory", "8g")
            .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
            .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog"))
 
 session = configure_spark_with_delta_pip(builder).getOrCreate()
 
-
+#Init of empty db
 def init_db(session: SparkSession) -> str:
     session.sql("DROP DATABASE IF EXISTS openaq CASCADE")
     session.sql("CREATE DATABASE IF NOT EXISTS openaq")
     session.sql("USE openaq")
     return session.catalog.currentDatabase()
 
-
+#Load data
 def training_data_exists() -> bool:
     delta_log = os.path.join(TRAINING_DELTA, "_delta_log")
     if os.path.exists(delta_log):
@@ -47,7 +53,7 @@ def training_data_exists() -> bool:
         return True
     return False
 
-
+#Load station
 def load_locations() -> list:
     if os.path.exists(CACHE_PATH):
         print("Loading stations from cache...")
@@ -66,7 +72,7 @@ def load_locations() -> list:
     print(f"Saved {len(locations)} stations to cache")
     return locations
 
-
+#CollectData
 def collect_data(session: SparkSession, locations: list) -> None:
     print(f"Starting data collection for {len(locations)} stations...")
 
@@ -91,14 +97,12 @@ def collect_data(session: SparkSession, locations: list) -> None:
             time.sleep(5)
     except KeyboardInterrupt:
         print("Stopping collection...")
-
         parquet_query.stop()
         parquet_query.awaitTermination(60)
-
         print("Streams stopped — exporting training data...")
         export_training_data(session)
 
-
+#Export Data
 def export_training_data(session: SparkSession) -> None:
     print("Exporting training data...")
 
@@ -142,6 +146,7 @@ print(f"Current database: {current_db}")
 
 session.dataSource.register(OpenAQDataSource)
 
+#Main
 if training_data_exists():
     print("Loading existing Delta table...")
     df = session.read.format("delta").load(TRAINING_DELTA)
@@ -149,15 +154,23 @@ if training_data_exists():
     print(f"Rows:      {df.count()}")
     print(f"Stations:  {df.select('location_id').distinct().count()}")
     print(f"Countries: {df.select('country').distinct().count()}")
+
     df = clean_data(df)
-    df = build_features(df)
-    df.show(10)
-    train_gbt_model(df)
+    df = df.withColumn("timestamp_unix", unix_timestamp(col("timestamp")))
+    cutoff = df.approxQuantile("timestamp_unix", [0.8], 0.01)[0]
+
+    train_raw = df.filter(col("timestamp_unix") <= cutoff)
+    test_raw  = df.filter(col("timestamp_unix") >  cutoff)
+
+    train_df = build_features(train_raw)
+    test_df  = build_features(test_raw)
+
+    train_df.show(10)
+    train_gbt_model(train_df, test_df)
 else:
     locations = load_locations()
     collect_data(session, locations)
     df = session.read.format("delta").load(TRAINING_DELTA)
-
 
 print("Stopping Spark session...")
 session.stop()

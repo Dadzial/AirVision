@@ -2,7 +2,7 @@ import {Viewer, ImageryLayer,CameraFlyTo} from "resium";
 import { UrlTemplateImageryProvider, Ion, Cartesian3 } from "cesium";
 import { CESIUM_ION_TOKEN } from "../config/config.ts";
 import styles from './MainPage.module.css';
-import HomeCameraButton from "../components/HomeCameraButton.tsx";
+import HomeButton from "../components/HomeButton.tsx";
 import SearchBar from "../components/SearchBar.tsx";
 import Header from "../components/Header.tsx";
 
@@ -29,7 +29,7 @@ export default function MainPage() {
             >
                 <div className={styles.controls}>
                     <SearchBar/>
-                    <HomeCameraButton/>
+                    <HomeButton/>
                 </div>
                 <ImageryLayer
                     brightness={1.6}
