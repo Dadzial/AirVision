@@ -1,7 +1,7 @@
 import requests
 import os
 from sqlalchemy.orm import Session
-from backend.database.models import DBStation
+from backend.database.tables.station import DBStation
 import dotenv
 import time
 

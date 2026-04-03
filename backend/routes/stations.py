@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from backend.database.db_init import get_db
-from backend.database.models.station import DBStation
+from backend.database.tables.station import DBStation
 from backend.schemas.stations import StationResponse
 from sqlalchemy.orm import Session
 
