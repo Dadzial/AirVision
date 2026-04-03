@@ -1,8 +1,7 @@
 import requests
 import os
-from typing import List
 from sqlalchemy.orm import Session
-from backend.models.station import DBStation
+from backend.database.models import DBStation
 import dotenv
 import time
 

@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database.db_init import engine, Base
 from backend.routes import stations
-from backend.models import station
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="AirVision API")
