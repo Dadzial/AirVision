@@ -8,6 +8,7 @@ import Header from "../components/Header.tsx";
 import CityPanel from "../components/CityPanel.tsx";
 import {useEffect, useState, useRef} from "react";
 import { fetchStations, type Station } from "../services/FetchStations.ts";
+import {fetchMeasurements, type Measurement} from "../services/FetchMeasurements.ts";
 import {getIcon} from "../utils/IconParser.tsx";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
@@ -17,7 +18,9 @@ export default function MainPage() {
     const [stations, setStations] = useState<Station[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedStation, setSelectedStation] = useState<Station | null>(null);
+    const [selectedMeasurements, setSelectedMeasurements] = useState<Measurement[]>([]);
     const greenIcon = getIcon("greenStateIcon");
+
 
     const viewerRef =  useRef<any>(null);
 
@@ -42,6 +45,22 @@ export default function MainPage() {
         }, 100);
         return () => clearTimeout(timer);
     }, []);
+
+    const handleStationClick = async (station: Station) => {
+        setSelectedStation(station);
+        setSelectedMeasurements([]);
+
+        const measurementsParams = await fetchMeasurements(station.id);
+        setSelectedMeasurements(measurementsParams);
+
+        if (viewerRef.current && viewerRef.current.cesiumElement) {
+            const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
+            viewerRef.current.cesiumElement.camera.flyTo({
+                destination: flyToPosition,
+                duration: 2
+            });
+        }
+    };
 
     return (
         <div className={styles.mainContainer}>
@@ -77,8 +96,12 @@ export default function MainPage() {
 
                     {selectedStation && (
                         <CityPanel
-                            onClose={() => setSelectedStation(null)}
+                            onClose={() => {
+                                setSelectedStation(null);
+                                setSelectedMeasurements([]);
+                            }}
                             station={selectedStation}
+                            measurements={selectedMeasurements.length > 0 ? selectedMeasurements[0] : null}
                         />
                     )}
                 </div>
@@ -97,31 +120,22 @@ export default function MainPage() {
 
                 {stations.map(station => {
                     const position = Cartesian3.fromDegrees(station.lng, station.lat);
-                    const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
 
                     return (
                         <Entity
                             key={station.id}
                             name={station.name}
-                            description={`Localization: ${station.city} (${station.country})`}
                             position={position}
                             billboard={{
                                 image: greenIcon,
                                 scale: 0.01,
                                 disableDepthTestDistance: Number.POSITIVE_INFINITY
                             }}
-                            onClick={() => {
-                                setSelectedStation(station);
-                                if (viewerRef.current && viewerRef.current.cesiumElement) {
-                                    viewerRef.current.cesiumElement.camera.flyTo({
-                                        destination: flyToPosition,
-                                        duration: 2
-                                    });
-                                }
-                            }}
+                            onClick={() => handleStationClick(station)}
                         />
                     );
                 })}
+
             </Viewer>
         </div>
     );

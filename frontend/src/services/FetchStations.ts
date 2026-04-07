@@ -7,6 +7,7 @@ export interface Station {
     country: string;
     lat: number;
     lng: number;
+    pm25?: number | null;
 }
 
 interface StationResponse {
