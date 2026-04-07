@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import relationship
+
 from backend.database.db_init import Base
 
 class DBStation(Base):
@@ -9,4 +11,4 @@ class DBStation(Base):
     country = Column(String, index=True)
     lat = Column(Float)
     lng = Column(Float)
-    pm25 = Column(Float)
+    measurements = relationship("DBMeasurement", back_populates="station")

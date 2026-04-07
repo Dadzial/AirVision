@@ -60,12 +60,6 @@ def fetch_pm25_stations(db: Session) -> int:
                         station_name = raw_name if raw_name else "Unknown Station"
                         fallback_city = raw_city if raw_city else station_name
 
-                        pm25_value = None
-                        for sensor in sensors:
-                            if sensor["parameter"]["name"] == "pm25":
-                                pm25_value = sensor.get("lastValue")
-                                break
-
                         existing_station = db.query(DBStation).filter(DBStation.id == loc["id"]).first()
 
                         if not existing_station:
@@ -76,7 +70,7 @@ def fetch_pm25_stations(db: Session) -> int:
                                 country=loc.get("country", {}).get("code", country),
                                 lat=coords.get("latitude"),
                                 lng=coords.get("longitude"),
-                                pm25=pm25_value
+
                             )
                             db.add(new_station)
                             stations_count += 1
