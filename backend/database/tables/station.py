@@ -9,3 +9,4 @@ class DBStation(Base):
     country = Column(String, index=True)
     lat = Column(Float)
     lng = Column(Float)
+    pm25 = Column(Float)

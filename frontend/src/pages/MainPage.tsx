@@ -78,6 +78,7 @@ export default function MainPage() {
                     {selectedStation && (
                         <CityPanel
                             onClose={() => setSelectedStation(null)}
+                            station={selectedStation}
                         />
                     )}
                 </div>

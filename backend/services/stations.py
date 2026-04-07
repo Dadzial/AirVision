@@ -33,7 +33,7 @@ def fetch_pm25_stations(db: Session) -> int:
 
                 if req.status_code == 429:
                     reset = int(req.headers.get("x-ratelimit-reset", 60))
-                    print(f"Limit API OpenAQ (429)! Czekam {reset} s...")
+                    print(f"Limit API OpenAQ (429)! Waiting {reset} s...")
                     time.sleep(reset)
                     continue
 
@@ -60,6 +60,12 @@ def fetch_pm25_stations(db: Session) -> int:
                         station_name = raw_name if raw_name else "Unknown Station"
                         fallback_city = raw_city if raw_city else station_name
 
+                        pm25_value = None
+                        for sensor in sensors:
+                            if sensor["parameter"]["name"] == "pm25":
+                                pm25_value = sensor.get("lastValue")
+                                break
+
                         existing_station = db.query(DBStation).filter(DBStation.id == loc["id"]).first()
 
                         if not existing_station:
@@ -69,7 +75,8 @@ def fetch_pm25_stations(db: Session) -> int:
                                 city=fallback_city,
                                 country=loc.get("country", {}).get("code", country),
                                 lat=coords.get("latitude"),
-                                lng=coords.get("longitude")
+                                lng=coords.get("longitude"),
+                                pm25=pm25_value
                             )
                             db.add(new_station)
                             stations_count += 1
