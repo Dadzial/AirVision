@@ -21,7 +21,6 @@ export default function MainPage() {
     const [selectedMeasurements, setSelectedMeasurements] = useState<Measurement[]>([]);
     const greenIcon = getIcon("greenStateIcon");
 
-
     const viewerRef =  useRef<any>(null);
 
     useEffect(() => {
