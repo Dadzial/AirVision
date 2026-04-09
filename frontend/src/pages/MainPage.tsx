@@ -10,6 +10,8 @@ import {useEffect, useState, useRef} from "react";
 import { fetchStations, type Station } from "../services/FetchStations.ts";
 import {fetchMeasurements, type Measurement} from "../services/FetchMeasurements.ts";
 import {getIcon} from "../utils/IconParser.tsx";
+import Scale from "../components/Scale.tsx";
+import GpsButton from "../components/GpsButton.tsx";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
 
@@ -20,6 +22,8 @@ export default function MainPage() {
     const [selectedStation, setSelectedStation] = useState<Station | null>(null);
     const [selectedMeasurements, setSelectedMeasurements] = useState<Measurement[]>([]);
     const greenIcon = getIcon("greenStateIcon");
+    const redIcon = getIcon("redStateIcon");
+    const yellowIcon = getIcon("yellowStateIcon");
 
     const viewerRef =  useRef<any>(null);
 
@@ -60,6 +64,19 @@ export default function MainPage() {
             });
         }
     };
+    
+    const getStationIcon = (station: Station) => {
+        const isSelected = selectedStation?.id === station.id;
+        const liveVal = isSelected && selectedMeasurements.length > 0 ? selectedMeasurements[0].pm25 : null;
+
+        const val = liveVal ?? station.last_pm25;
+        
+        if (val === null || val === undefined) return greenIcon;
+
+        if (val <= 12) return greenIcon;
+        if (val <= 35) return yellowIcon;
+        return redIcon;
+    }
 
     return (
         <div className={styles.mainContainer}>
@@ -86,25 +103,6 @@ export default function MainPage() {
                     </div>
                 )}
 
-                <div className={styles.controls}>
-
-                    <div className={styles.controlsTop}>
-                        <SearchBar/>
-                        <HomeButton/>
-                    </div>
-
-                    {selectedStation && (
-                        <CityPanel
-                            onClose={() => {
-                                setSelectedStation(null);
-                                setSelectedMeasurements([]);
-                            }}
-                            station={selectedStation}
-                            measurements={selectedMeasurements.length > 0 ? selectedMeasurements[0] : null}
-                        />
-                    )}
-                </div>
-
                 <ImageryLayer
                     brightness={1.6}
                     contrast={1}
@@ -126,7 +124,7 @@ export default function MainPage() {
                             name={station.name}
                             position={position}
                             billboard={{
-                                image: greenIcon,
+                                image: getStationIcon(station),
                                 scale: 0.01,
                                 disableDepthTestDistance: Number.POSITIVE_INFINITY
                             }}
@@ -134,6 +132,30 @@ export default function MainPage() {
                         />
                     );
                 })}
+
+            <div className={styles.controls}>
+
+                <div className={styles.controlsTop}>
+                    <SearchBar/>
+                    <HomeButton/>
+                </div>
+                
+                {selectedStation && (
+                    <CityPanel
+                        onClose={() => {
+                            setSelectedStation(null);
+                            setSelectedMeasurements([]);
+                        }}
+                        station={selectedStation}
+                        measurements={selectedMeasurements.length > 0 ? selectedMeasurements[0] : null}
+                    />
+                )}
+            </div>
+
+            <div className={styles.controlsBottomRight}>
+                <Scale />
+                <GpsButton />
+            </div>
 
             </Viewer>
         </div>

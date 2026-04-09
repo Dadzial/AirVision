@@ -9,6 +9,8 @@ class Station(BaseModel):
     country: str
     lat: float
     lng: float
+    last_pm25: Optional[float] = None
+
 
 class StationResponse(BaseModel):
     stations: List[Station]

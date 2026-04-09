@@ -14,6 +14,7 @@ EUROPE_COUNTRIES = ["PL", "DE", "GB", "NL", "FR", "IT", "ES", "CZ", "AT", "SE", 
 
 def fetch_pm25_stations(db: Session) -> int:
     stations_count = 0
+    REQUEST_DELAY = 0.5 
 
     for country in EUROPE_COUNTRIES:
         print(f"Downloading stations for {country}")
@@ -37,7 +38,6 @@ def fetch_pm25_stations(db: Session) -> int:
                     time.sleep(reset)
                     continue
 
-
                 req.raise_for_status()
                 results = req.json().get("results", [])
 
@@ -50,13 +50,39 @@ def fetch_pm25_stations(db: Session) -> int:
                         continue
 
                     sensors = loc.get("sensors", [])
-                    has_pm25 = any(s["parameter"]["name"] == "pm25" for s in sensors)
+                    pm25_sensor = next((s for s in sensors if s["parameter"]["name"] == "pm25"), None)
 
-                    if has_pm25:
+                    if pm25_sensor:
+                        sensor_id = pm25_sensor["id"]
+                        
                         raw_city = loc.get("locality")
                         raw_name = loc.get("name")
+                        
+                        last_pm25_val = None
 
-
+                        try:
+                            time.sleep(REQUEST_DELAY)
+                            
+                            while True:
+                                meas_req = requests.get(
+                                    f"https://api.openaq.org/v3/sensors/{sensor_id}/measurements",
+                                    params={"limit": 1},
+                                    headers=OPENAQ_HEADERS,
+                                    timeout=10
+                                )
+                                if meas_req.status_code == 429:
+                                    reset = int(meas_req.headers.get("x-ratelimit-reset", 60))
+                                    print(f"Limit API OpenAQ on sensors (429)! Waiting {reset} s...")
+                                    time.sleep(reset)
+                                    continue
+                                if meas_req.status_code == 200:
+                                    meas_data = meas_req.json().get("results", [])
+                                    if meas_data:
+                                        last_pm25_val = meas_data[0].get("value")
+                                break
+                        except Exception as sensor_err:
+                            print(f"Błąd przy pobieraniu sensora {sensor_id}: {sensor_err}")
+                                
                         station_name = raw_name if raw_name else "Unknown Station"
                         fallback_city = raw_city if raw_city else station_name
 
@@ -70,10 +96,12 @@ def fetch_pm25_stations(db: Session) -> int:
                                 country=loc.get("country", {}).get("code", country),
                                 lat=coords.get("latitude"),
                                 lng=coords.get("longitude"),
-
+                                last_pm25=last_pm25_val
                             )
                             db.add(new_station)
                             stations_count += 1
+                        else:
+                            existing_station.last_pm25 = last_pm25_val
 
                 db.commit()
                 page += 1

@@ -8,6 +8,7 @@ export interface Station {
     lat: number;
     lng: number;
     pm25?: number | null;
+    last_pm25?: number;
 }
 
 interface StationResponse {

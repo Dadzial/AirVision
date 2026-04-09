@@ -11,4 +11,5 @@ class DBStation(Base):
     country = Column(String, index=True)
     lat = Column(Float)
     lng = Column(Float)
+    last_pm25 = Column(Float, nullable=True)
     measurements = relationship("DBMeasurement", back_populates="station")
