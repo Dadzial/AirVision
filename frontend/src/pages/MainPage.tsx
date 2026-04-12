@@ -12,6 +12,7 @@ import {fetchMeasurements, type Measurement} from "../services/FetchMeasurements
 import {getIcon} from "../utils/IconParser.tsx";
 import Scale from "../components/Scale.tsx";
 import GpsButton from "../components/GpsButton.tsx";
+import RefreshButton from "../components/RefreshButton.tsx";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
 
@@ -63,6 +64,13 @@ export default function MainPage() {
                 duration: 2
             });
         }
+    };
+
+    const handleRefresh = async () => {
+        setLoading(true);
+        const data = await fetchStations();
+        setStations(data);
+        setLoading(false);
     };
     
     const getStationIcon = (station: Station) => {
@@ -137,6 +145,7 @@ export default function MainPage() {
 
                 <div className={styles.controlsTop}>
                     <SearchBar/>
+                    <RefreshButton onRefresh={handleRefresh}/>
                     <HomeButton/>
                 </div>
                 
