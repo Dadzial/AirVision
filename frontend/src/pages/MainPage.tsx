@@ -1,5 +1,5 @@
 import {Viewer, ImageryLayer, Entity} from "resium";
-import { UrlTemplateImageryProvider, Ion, Cartesian3  } from "cesium";
+import {UrlTemplateImageryProvider, Ion, Cartesian3, NearFarScalar} from "cesium";
 import { CESIUM_ION_TOKEN } from "../config/config.ts";
 import styles from './MainPage.module.css';
 import HomeButton from "../components/HomeButton.tsx";
@@ -66,13 +66,6 @@ export default function MainPage() {
         }
     };
 
-    const handleRefresh = async () => {
-        setLoading(true);
-        const data = await fetchStations();
-        setStations(data);
-        setLoading(false);
-    };
-    
     const getStationIcon = (station: Station) => {
         const isSelected = selectedStation?.id === station.id;
         const liveVal = isSelected && selectedMeasurements.length > 0 ? selectedMeasurements[0].pm25 : null;
@@ -133,7 +126,10 @@ export default function MainPage() {
                             position={position}
                             billboard={{
                                 image: getStationIcon(station),
-                                scale: 0.01,
+                                scaleByDistance: new NearFarScalar(
+                                    2.0e5, 0.02,
+                                    5.0e7, 0.001
+                                ),
                                 disableDepthTestDistance: Number.POSITIVE_INFINITY
                             }}
                             onClick={() => handleStationClick(station)}
@@ -145,7 +141,7 @@ export default function MainPage() {
 
                 <div className={styles.controlsTop}>
                     <SearchBar/>
-                    <RefreshButton onRefresh={handleRefresh}/>
+                    <RefreshButton onStationsUpdate={setStations}/>
                     <HomeButton/>
                 </div>
                 
