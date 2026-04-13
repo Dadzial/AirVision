@@ -12,10 +12,21 @@ interface CityPanelProps {
 export default function CityPanel({onClose, station, measurements}: CityPanelProps) {
 
     const flagSrc = getFlagByCountryCode(station.country);
-    const faceSrc = getIcon("faceGreen")
+    const faceGreen = getIcon("faceGreen")
+    const faceYellow = getIcon("faceYellow")
+    const faceRed = getIcon("faceRed")
 
     const displayLocation = (station.city && station.city !== "null") ? station.city : station.name;
     const isSame = (station.city === station.name) || !station.city;
+    
+
+    const selectFaceByPm25 = () => {
+        if (!measurements || measurements.pm25 === undefined || measurements.pm25 === null) return faceGreen;
+        const pm25 = measurements.pm25;
+        if (pm25 <= 15) return faceGreen;
+        if (pm25 <= 35) return faceYellow;
+        return faceRed;
+    }
 
     return (
         <div style={{
@@ -85,7 +96,7 @@ export default function CityPanel({onClose, station, measurements}: CityPanelPro
                             boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
                         }}>
                             <img
-                                src={faceSrc}
+                                src={selectFaceByPm25()}
                                 alt="Air quality status"
                                 style={{
                                     width: "32px",
