@@ -1,5 +1,6 @@
 import {Viewer, ImageryLayer, Entity} from "resium";
 import {UrlTemplateImageryProvider, Ion, Cartesian3, NearFarScalar} from "cesium";
+
 import {BACKEND_URL, CESIUM_ION_TOKEN} from "../config/config.ts";
 import styles from './MainPage.module.css';
 import HomeButton from "../components/HomeButton.tsx";
@@ -95,6 +96,16 @@ export default function MainPage() {
         return redIcon;
     }
 
+    const handleGps = ({ lat, lng }: { lat: number; lng: number }) => {
+        if (viewerRef.current && viewerRef.current.cesiumElement) {
+            const flyToPosition = Cartesian3.fromDegrees(lng, lat, 200000);
+            viewerRef.current.cesiumElement.camera.flyTo({
+                destination: flyToPosition,
+                duration: 2
+            });
+        }
+    };
+
     return (
         <div className={styles.mainContainer}>
             <Header/>
@@ -175,7 +186,7 @@ export default function MainPage() {
 
             <div className={styles.controlsBottomRight}>
                 <Scale />
-                <GpsButton />
+                <GpsButton onGps={handleGps} />
             </div>
 
             </Viewer>
