@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { getIcon } from "../utils/IconParser.tsx";
-import { fetchStations } from "../services/FetchStations.ts";
 import { BACKEND_URL } from "../config/config.ts";
 
 type RefreshButtonProps = {
-    onStationsUpdate: (stations: any[]) => void;
+    onStationsUpdate: (updater: (prev: any[]) => any[]) => void;
 };
 
 export default function RefreshButton({ onStationsUpdate }: RefreshButtonProps) {
@@ -13,10 +12,21 @@ export default function RefreshButton({ onStationsUpdate }: RefreshButtonProps) 
 
     const handleClick = async () => {
         setIsRefreshing(true);
-        await fetch(`${BACKEND_URL}/api/stations/sync`, { method: "POST" });
-        const stations = await fetchStations();
-        onStationsUpdate(stations);
-        setIsRefreshing(false);
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/stations/pm25`);
+            const data = await response.json();
+
+            onStationsUpdate(prev =>
+                prev.map(station => {
+                    const update = data.updates.find((u: any) => u.id === station.id);
+                    return update ? { ...station, last_pm25: update.last_pm25 } : station;
+                })
+            );
+        } catch (e) {
+            console.error("Błąd odświeżania:", e);
+        } finally {
+            setIsRefreshing(false);
+        }
     };
 
     return (
@@ -27,14 +37,13 @@ export default function RefreshButton({ onStationsUpdate }: RefreshButtonProps) 
                 border: "1px solid #ccc",
                 borderRadius: 4,
                 fontFamily: "Poppins, sans-serif",
-                fontWeight:600,
+                fontWeight: 600,
                 fontSize: 14,
                 background: "white",
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
                 cursor: isRefreshing ? "wait" : "pointer",
-                transition: "background 0.2s",
             }}
             onClick={handleClick}
             disabled={isRefreshing}
@@ -47,18 +56,11 @@ export default function RefreshButton({ onStationsUpdate }: RefreshButtonProps) 
                     height: 22,
                     marginRight: 2,
                     marginBottom: 1,
-                    transition: "transform 0.3s",
                     animation: isRefreshing ? "spin 1s linear infinite" : "none"
                 }}
             />
-            {isRefreshing ? "Synchronizing data..." : "Sync data"}
-            <style>
-                {`
-                @keyframes spin {
-                    100% { transform: rotate(360deg); }
-                }
-                `}
-            </style>
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+            <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
         </button>
     );
 }

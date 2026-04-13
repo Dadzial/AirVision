@@ -1,6 +1,6 @@
 import {Viewer, ImageryLayer, Entity} from "resium";
 import {UrlTemplateImageryProvider, Ion, Cartesian3, NearFarScalar} from "cesium";
-import { CESIUM_ION_TOKEN } from "../config/config.ts";
+import {BACKEND_URL, CESIUM_ION_TOKEN} from "../config/config.ts";
 import styles from './MainPage.module.css';
 import HomeButton from "../components/HomeButton.tsx";
 import SearchBar from "../components/SearchBar.tsx";
@@ -37,6 +37,22 @@ export default function MainPage() {
 
        loadAirStations();
     },[])
+
+    useEffect(() => {
+        const refreshPm25 = async () => {
+            const response = await fetch(`${BACKEND_URL}/api/stations/pm25`);
+            const data = await response.json();
+            setStations(prev =>
+                prev.map(station => {
+                    const update = data.updates.find((u: any) => u.id === station.id);
+                    return update ? { ...station, last_pm25: update.last_pm25 } : station;
+                })
+            );
+        };
+
+        const interval = setInterval(refreshPm25, 60 * 60 * 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         const timer = setTimeout(() => {
