@@ -82,7 +82,7 @@ export default function CityPanel({onClose , station , measurements, weather}: C
                         boxShadow: "inset 0 0 10px rgba(23, 193, 223, 0.05)"
                     }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                            <p style={{ margin: "0", color: "#666", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                            <p style={{ margin: "0", color: "#666", fontWeight: "600", fontSize: "12px",letterSpacing: "0.5px" }}>
                                 Current PM2.5
                             </p>
                             <p style={{ margin: "0", color: "#222", fontSize: "24px", fontWeight: "700", display: "flex", alignItems: "baseline", gap: "4px" }}>
@@ -137,7 +137,7 @@ export default function CityPanel({onClose , station , measurements, weather}: C
                         alignItems: "flex-start"
                     }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontWeight: 600, fontSize: 13, color: "#666", letterSpacing: 0.5, textTransform: "uppercase" }}>Weather</span>
+                            <span style={{ fontWeight: 600, fontSize: 13, color: "#666", letterSpacing: 0.5 }}>Weather</span>
                         </div>
                         <div style={{
                             display: "flex",
@@ -226,6 +226,105 @@ export default function CityPanel({onClose , station , measurements, weather}: C
                     <span style={{ fontSize: 10, color: "#888", fontWeight: 400, marginTop: 10, alignSelf: "flex-end", display: "block", width: "100%", textAlign: "right" }}>
                         {weather.timestamp ? `Weather update: ${new Date(weather.timestamp).toLocaleString()}` : "-"}
                     </span>
+                    <div style={{
+                        width: "100%",
+                        background: "rgba(23, 193, 223, 0.10)",
+                        borderRadius: "14px",
+                        padding: "14px 10px 10px 10px",
+                        boxSizing: "border-box",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
+                        border: "1px solid rgba(23, 193, 223, 0.25)",
+                        boxShadow: "inset 0 0 10px rgba(23, 193, 223, 0.07)",
+                        alignItems: "flex-start",
+                        marginTop: 12
+                    }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontWeight: 600, fontSize: 13, color: "#666", letterSpacing: 0.5}}>PM2.5 for next hours :</span>
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "10px",
+                            width: "100%",
+                            justifyContent: "space-between"
+                        }}>
+                            <div style={{
+                                flex: "1 1 80px",
+                                minWidth: 0,
+                                background: "#fff",
+                                borderRadius: 10,
+                                padding: "8px 6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                border: "1px solid #e0f7fa"
+                            }}>
+                                <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+1h</span>
+                                <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
+                                    {/*Here will be first predict*/}
+                                    -
+                                    <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
+                                </span>
+                            </div>
+                            <div style={{
+                                flex: "1 1 80px",
+                                minWidth: 0,
+                                background: "#fff",
+                                borderRadius: 10,
+                                padding: "8px 6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                border: "1px solid #e0f7fa"
+                            }}>
+                                <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+3h</span>
+                                <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
+                                    -
+                                    <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
+                                </span>
+                            </div>
+                            <div style={{
+                                flex: "1 1 80px",
+                                minWidth: 0,
+                                background: "#fff",
+                                borderRadius: 10,
+                                padding: "8px 6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                border: "1px solid #e0f7fa"
+                            }}>
+                                <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+12h</span>
+                                <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
+                                    -
+                                    <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
+                                </span>
+                            </div>
+                            <div style={{
+                                flex: "1 1 80px",
+                                minWidth: 0,
+                                background: "#fff",
+                                borderRadius: 10,
+                                padding: "8px 6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                border: "1px solid #e0f7fa"
+                            }}>
+                                <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+24h</span>
+                                <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
+                                    -
+                                    <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                     </>
                 ) : (
                     <span style={{ fontSize: 10, color: "#888" }}>Fetching weather data...</span>
