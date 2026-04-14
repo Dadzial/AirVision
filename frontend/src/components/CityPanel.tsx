@@ -9,9 +9,10 @@ interface CityPanelProps {
     measurements: Measurement | null;
     weather: Weather | null;
     onClose: () => void;
+    pm25Prediction: number | null;
 }
 
-export default function CityPanel({onClose , station , measurements, weather}: CityPanelProps) {
+export default function CityPanel({onClose , station , measurements, weather,pm25Prediction}: CityPanelProps) {
 
     const flagSrc = getFlagByCountryCode(station.country);
     const faceGreen = getIcon("faceGreen")
@@ -264,8 +265,7 @@ export default function CityPanel({onClose , station , measurements, weather}: C
                             }}>
                                 <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+1h</span>
                                 <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
-                                    {/*Here will be first predict*/}
-                                    -
+                                    {pm25Prediction !== null && pm25Prediction !== undefined ? pm25Prediction.toFixed(1) : "-"}
                                     <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
                                 </span>
                             </div>

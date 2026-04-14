@@ -10,6 +10,7 @@ import CityPanel from "../components/CityPanel.tsx";
 import {useEffect, useState, useRef} from "react";
 import { fetchStations, type Station } from "../services/FetchStations.ts";
 import {fetchMeasurements, type Measurement} from "../services/FetchMeasurements.ts";
+import {fetchPm25Predict, type Predict} from "../services/FetchPm25Predict.ts";
 import {getIcon} from "../utils/IconParser.tsx";
 import Scale from "../components/Scale.tsx";
 import GpsButton from "../components/GpsButton.tsx";
@@ -25,6 +26,7 @@ export default function MainPage() {
     const [selectedStation, setSelectedStation] = useState<Station | null>(null);
     const [selectedMeasurements, setSelectedMeasurements] = useState<Measurement[]>([]);
     const [weather, setWeather] = useState<Weather | null>(null);
+    const [predict, setPredict] = useState<Predict | null>(null);
     const greenIcon = getIcon("greenStateIcon");
     const redIcon = getIcon("redStateIcon");
     const yellowIcon = getIcon("yellowStateIcon");
@@ -79,6 +81,9 @@ export default function MainPage() {
 
         const weatherData = await FetchWeather(station.id);
         setWeather(weatherData);
+
+        const predict = await fetchPm25Predict(station.id);
+        setPredict(predict);
 
         if (viewerRef.current && viewerRef.current.cesiumElement) {
             const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
@@ -184,10 +189,12 @@ export default function MainPage() {
                             setSelectedStation(null);
                             setSelectedMeasurements([]);
                             setWeather(null);
+                            setPredict(null);
                         }}
                         station={selectedStation}
                         measurements={selectedMeasurements.length > 0 ? selectedMeasurements[0] : null}
                         weather={weather}
+                        pm25Prediction={predict ? predict.pm25Predicted : null}
                     />
                 )}
             </div>
