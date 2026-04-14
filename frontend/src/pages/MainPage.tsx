@@ -14,6 +14,7 @@ import {getIcon} from "../utils/IconParser.tsx";
 import Scale from "../components/Scale.tsx";
 import GpsButton from "../components/GpsButton.tsx";
 import RefreshButton from "../components/RefreshButton.tsx";
+import { FetchWeather, type Weather } from "../services/FetchWeather.ts";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
 
@@ -23,6 +24,7 @@ export default function MainPage() {
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedStation, setSelectedStation] = useState<Station | null>(null);
     const [selectedMeasurements, setSelectedMeasurements] = useState<Measurement[]>([]);
+    const [weather, setWeather] = useState<Weather | null>(null);
     const greenIcon = getIcon("greenStateIcon");
     const redIcon = getIcon("redStateIcon");
     const yellowIcon = getIcon("yellowStateIcon");
@@ -70,9 +72,13 @@ export default function MainPage() {
     const handleStationClick = async (station: Station) => {
         setSelectedStation(station);
         setSelectedMeasurements([]);
+        setWeather(null);
 
         const measurementsParams = await fetchMeasurements(station.id);
         setSelectedMeasurements(measurementsParams);
+
+        const weatherData = await FetchWeather(station.id);
+        setWeather(weatherData);
 
         if (viewerRef.current && viewerRef.current.cesiumElement) {
             const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
@@ -177,9 +183,11 @@ export default function MainPage() {
                         onClose={() => {
                             setSelectedStation(null);
                             setSelectedMeasurements([]);
+                            setWeather(null);
                         }}
                         station={selectedStation}
                         measurements={selectedMeasurements.length > 0 ? selectedMeasurements[0] : null}
+                        weather={weather}
                     />
                 )}
             </div>

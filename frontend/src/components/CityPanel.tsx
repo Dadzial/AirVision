@@ -1,15 +1,17 @@
 import { Station } from "../services/FetchStations";
 import { Measurement } from "../services/FetchMeasurements.ts";
+import {type Weather } from "../services/FetchWeather.ts";
 import { getFlagByCountryCode } from "../utils/FlagParser";
 import {getIcon} from "../utils/IconParser.tsx";
 
 interface CityPanelProps {
     station: Station;
     measurements: Measurement | null;
+    weather: Weather | null;
     onClose: () => void;
 }
 
-export default function CityPanel({onClose, station, measurements}: CityPanelProps) {
+export default function CityPanel({onClose , station , measurements, weather}: CityPanelProps) {
 
     const flagSrc = getFlagByCountryCode(station.country);
     const faceGreen = getIcon("faceGreen")
@@ -65,7 +67,7 @@ export default function CityPanel({onClose, station, measurements}: CityPanelPro
                 </span>
             )}
 
-            <div style={{ marginTop: "10px", width: "100%"}}>
+            <div style={{ marginTop: "2px", width: "100%"}}>
                 {measurements ? (
                     <div style={{
                         width: "100%",
@@ -111,14 +113,124 @@ export default function CityPanel({onClose, station, measurements}: CityPanelPro
                 )}
             </div>
 
-            <div style={{ marginTop: "10px", width: "100%"}}>
+            <div style={{ margin: "2px 0 0 0", width: "100%"}}>
                 {measurements ? (
-                    <p style={{ margin: "0", fontSize: "10px", color: "#888", textAlign:"end" }}>
+                    <p style={{ fontSize: "10px", color: "#888", textAlign:"end", margin: 0 }}>
                         Update: {new Date(measurements.datetime).toLocaleString()}
                     </p>
                 ) : null}
             </div>
-
+            <div style={{ margin: "2px 0 0 0", width: "100%" }}>
+                {weather ? (
+                    <>
+                    <div style={{
+                        width: "100%",
+                        background: "rgba(23, 193, 223, 0.10)",
+                        borderRadius: "14px",
+                        padding: "14px 10px 10px 10px",
+                        boxSizing: "border-box",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
+                        border: "1px solid rgba(23, 193, 223, 0.25)",
+                        boxShadow: "inset 0 0 10px rgba(23, 193, 223, 0.07)",
+                        alignItems: "flex-start"
+                    }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontWeight: 600, fontSize: 13, color: "#666", letterSpacing: 0.5, textTransform: "uppercase" }}>Weather</span>
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "10px",
+                            width: "100%",
+                            justifyContent: "space-between"
+                        }}>
+                            <div style={{
+                                flex: "1 1 80px",
+                                minWidth: 0,
+                                background: "#fff",
+                                borderRadius: 10,
+                                padding: "8px 6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                border: "1px solid #e0f7fa"
+                            }}>
+                                <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>Temperature</span>
+                                <span style={{ fontSize: 17, fontWeight: 700, color: "#222" }}>{weather.temperature !== undefined && weather.temperature !== null ? weather.temperature.toFixed(1) : "-"}<span style={{ fontSize: 11, color: "#888" }}>°C</span></span>
+                            </div>
+                            <div style={{
+                                flex: "1 1 80px",
+                                minWidth: 0,
+                                background: "#fff",
+                                borderRadius: 10,
+                                padding: "8px 6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                border: "1px solid #e0f7fa"
+                            }}>
+                                <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>Humidity</span>
+                                <span style={{ fontSize: 17, fontWeight: 700, color: "#222" }}>{weather.humidity !== undefined && weather.humidity !== null ? weather.humidity.toFixed(0) : "-"}<span style={{ fontSize: 11, color: "#888" }}>%</span></span>
+                            </div>
+                            <div style={{
+                                flex: "1 1 80px",
+                                minWidth: 0,
+                                background: "#fff",
+                                borderRadius: 10,
+                                padding: "8px 6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                border: "1px solid #e0f7fa"
+                            }}>
+                                <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>Wind</span>
+                                <span style={{ fontSize: 17, fontWeight: 700, color: "#222" }}>{weather.wind_speed !== undefined && weather.wind_speed !== null ? weather.wind_speed.toFixed(1) : "-"}<span style={{ fontSize: 11, color: "#888" }}>m/s</span></span>
+                            </div>
+                            <div style={{
+                                flex: "1 1 80px",
+                                minWidth: 0,
+                                background: "#fff",
+                                borderRadius: 10,
+                                padding: "8px 6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                border: "1px solid #e0f7fa"
+                            }}>
+                                <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>Precipitation</span>
+                                <span style={{ fontSize: 17, fontWeight: 700, color: "#222" }}>{weather.precipitation !== undefined && weather.precipitation !== null ? weather.precipitation.toFixed(1) : "-"}<span style={{ fontSize: 11, color: "#888" }}>mm</span></span>
+                            </div>
+                            <div style={{
+                                flex: "1 1 80px",
+                                minWidth: 0,
+                                background: "#fff",
+                                borderRadius: 10,
+                                padding: "8px 6px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                border: "1px solid #e0f7fa"
+                            }}>
+                                <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>Pressure</span>
+                                <span style={{ fontSize: 17, fontWeight: 700, color: "#222" }}>{weather.pressure !== undefined && weather.pressure !== null ? weather.pressure.toFixed(0) : "-"}<span style={{ fontSize: 11, color: "#888" }}>hPa</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <span style={{ fontSize: 10, color: "#888", fontWeight: 400, marginTop: 10, alignSelf: "flex-end", display: "block", width: "100%", textAlign: "right" }}>
+                        {weather.timestamp ? `Weather update: ${new Date(weather.timestamp).toLocaleString()}` : "-"}
+                    </span>
+                    </>
+                ) : (
+                    <span style={{ fontSize: 10, color: "#888" }}>Fetching weather data...</span>
+                )}
+            </div>
             <span onClick={onClose} style={{ cursor:'pointer', fontSize: "13px", color: "#c13b3b", alignSelf: "flex-end", marginTop: "4px", fontWeight: "bold" }}>
                 Close
             </span>

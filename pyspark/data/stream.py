@@ -139,7 +139,7 @@ def fetch_weather(lat: float, lng: float, date_from: str, date_to: str) -> dict:
             }
         return weather
     except Exception as e:
-        print(f"Błąd pogody dla {lat},{lng}: {e}")
+        print(f"Error weather for {lat},{lng}: {e}")
         return {}
 
 

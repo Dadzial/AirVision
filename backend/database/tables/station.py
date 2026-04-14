@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.orm import relationship
-
 from backend.database.db_init import Base
 
 class DBStation(Base):
@@ -13,3 +12,4 @@ class DBStation(Base):
     lng = Column(Float)
     last_pm25 = Column(Float, nullable=True)
     measurements = relationship("DBMeasurement", back_populates="station")
+    weather = relationship("DBWeather", back_populates="station")

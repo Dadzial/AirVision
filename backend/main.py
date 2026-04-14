@@ -3,12 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 from backend.database.db_init import engine, Base, get_db
 from backend.services.stations import update_pm25_only
-from backend.routes import stations
-from backend.routes import measurements
+from backend.routes import stations, weather,measurements
+
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="AirVision API")
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,12 +19,13 @@ app.add_middleware(
 
 app.include_router(stations.router)
 app.include_router(measurements.router)
+app.include_router(weather.router)
 
 def scheduled_update():
     db = next(get_db())
     try:
-        updated = update_pm25_only(db)
-        print(f"Scheduler: update {updated} stations")
+        updated_pm25 = update_pm25_only(db)
+        print(f"Scheduler: update {updated_pm25} stations")
     except Exception as e:
         print(f"Scheduler error: {e}")
     finally:
