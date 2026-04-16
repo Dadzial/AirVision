@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 from backend.database.db_init import engine, Base, get_db
 from backend.services.stations import update_pm25_only
-from backend.routes import stations, weather,measurements
+from backend.routes import stations, weather,measurements, predict
 
 
 Base.metadata.create_all(bind=engine)
@@ -20,6 +20,7 @@ app.add_middleware(
 app.include_router(stations.router)
 app.include_router(measurements.router)
 app.include_router(weather.router)
+app.include_router(predict.router)
 
 def scheduled_update():
     db = next(get_db())
