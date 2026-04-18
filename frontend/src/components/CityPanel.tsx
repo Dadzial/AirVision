@@ -1,8 +1,20 @@
+import { Line } from 'react-chartjs-2';
+import {Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend} from 'chart.js';
 import { Station } from "../services/FetchStations";
 import { Measurement } from "../services/FetchMeasurements.ts";
 import {type Weather } from "../services/FetchWeather.ts";
 import { getFlagByCountryCode } from "../utils/FlagParser";
 import {getIcon} from "../utils/IconParser.tsx";
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+);
 
 interface CityPanelProps {
     station: Station;
@@ -11,6 +23,17 @@ interface CityPanelProps {
     onClose: () => void;
     pm25Prediction: number | null;
 }
+
+const data = {
+    labels: ['Jan', 'Feb', 'Mar'],
+    datasets: [
+        {
+            label: 'Sales',
+            data: [30, 45, 60],
+            borderColor: 'rgb(75, 192, 192)',
+        },
+    ],
+};
 
 export default function CityPanel({onClose , station , measurements, weather,pm25Prediction}: CityPanelProps) {
 
@@ -44,7 +67,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
-            gap: "4px",
+            gap: "5px",
         }}
         >
             <span style={{ fontSize: "18px", fontWeight: "600", color: "#17C1DF", display: "flex", alignItems: "center", gap: "8px", wordBreak: "break-word" }}>
@@ -330,6 +353,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                     <span style={{ fontSize: 10, color: "#888" }}>Fetching weather data...</span>
                 )}
             </div>
+            <Line data={data}/>
             <span onClick={onClose} style={{ cursor:'pointer', fontSize: "13px", color: "#c13b3b", alignSelf: "flex-end", marginTop: "4px", fontWeight: "bold" }}>
                 Close
             </span>

@@ -174,7 +174,7 @@ def fetch_pm25_stations(db: Session) -> int:
         ids_to_delete = all_db_ids - valid_station_ids
 
         if ids_to_delete:
-            print(f"Usuwam {len(ids_to_delete)} nieaktualnych stacji...")
+            print(f"Delete {len(ids_to_delete)}")
             db.query(DBStation).filter(DBStation.id.in_(ids_to_delete)).delete(synchronize_session=False)
             db.commit()
 
