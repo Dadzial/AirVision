@@ -26,6 +26,7 @@ export default function MainPage() {
     const [selectedMeasurements, setSelectedMeasurements] = useState<Measurement[]>([]);
     const [weather, setWeather] = useState<Weather | null>(null);
     const [predict, setPredict] = useState<Predict | null>(null);
+    const [isPredictLoading, setIsPredictLoading] = useState<boolean>(false);
     const greenIcon = getIcon("greenStateIcon");
     const redIcon = getIcon("redStateIcon");
     const yellowIcon = getIcon("yellowStateIcon");
@@ -72,19 +73,6 @@ export default function MainPage() {
     }, []);
 
     const handleStationClick = async (station: Station) => {
-        setSelectedStation(station);
-        setSelectedMeasurements([]);
-        setWeather(null);
-
-        const measurementsParams = await fetchMeasurements(station.id);
-        setSelectedMeasurements(measurementsParams);
-
-        const weatherData = await FetchWeather(station.id);
-        setWeather(weatherData);
-
-        const predict = await fetchPm25Predict(station.id);
-        setPredict(predict);
-
         if (viewerRef.current && viewerRef.current.cesiumElement) {
             const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
             viewerRef.current.cesiumElement.camera.flyTo({
@@ -92,6 +80,21 @@ export default function MainPage() {
                 duration: 2,
             });
         }
+
+        setSelectedStation(station);
+        setSelectedMeasurements([]);
+        setWeather(null);
+        setPredict(null);
+        setIsPredictLoading(true);
+
+
+        fetchMeasurements(station.id).then(setSelectedMeasurements);
+        FetchWeather(station.id).then(setWeather);
+        
+        fetchPm25Predict(station.id).then(predictData => {
+            setPredict(predictData);
+            setIsPredictLoading(false);
+        }).catch(() => setIsPredictLoading(false));
     };
 
     const getStationIcon = (station: Station) => {
@@ -205,11 +208,13 @@ export default function MainPage() {
                             setSelectedMeasurements([]);
                             setWeather(null);
                             setPredict(null);
+                            setIsPredictLoading(false);
                         }}
                         station={selectedStation}
                         measurements={selectedMeasurements}
                         weather={weather}
                         pm25Prediction={predict ? predict.pm25Predicted : null}
+                        isPredictLoading={isPredictLoading}
                     />
                 )}
             </div>

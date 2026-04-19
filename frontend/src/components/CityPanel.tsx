@@ -22,9 +22,10 @@ interface CityPanelProps {
     weather: Weather | null;
     onClose: () => void;
     pm25Prediction: number | null;
+    isPredictLoading: boolean;
 }
 
-export default function CityPanel({onClose , station , measurements, weather,pm25Prediction}: CityPanelProps) {
+export default function CityPanel({onClose , station , measurements, weather,pm25Prediction, isPredictLoading}: CityPanelProps) {
 
     const flagSrc = getFlagByCountryCode(station.country || "");
     const faceGreen = getIcon("faceGreen")
@@ -188,6 +189,15 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                 ) : null}
             </div>
             <div style={{ margin: "2px 0 0 0", width: "100%" }}>
+                <style>
+                    {`
+                        @keyframes pulse {
+                            0% { background-color: rgba(23, 193, 223, 0.10); }
+                            50% { background-color: rgba(23, 193, 223, 0.25); }
+                            100% { background-color: rgba(23, 193, 223, 0.10); }
+                        }
+                    `}
+                </style>
                 {weather ? (
                     <>
                     <div style={{
@@ -295,13 +305,14 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                     </span>
                     <div style={{
                         width: "100%",
-                        background: "rgba(23, 193, 223, 0.10)",
+                        background: isPredictLoading ? "rgba(23, 193, 223, 0.15)" : "rgba(23, 193, 223, 0.10)",
+                        animation: isPredictLoading ? "pulse 1.5s infinite ease-in-out" : "none",
                         borderRadius: "14px",
                         padding: "14px 10px 10px 10px",
                         boxSizing: "border-box",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "5px",
+                        gap: "8px",
                         border: "1px solid rgba(23, 193, 223, 0.25)",
                         boxShadow: "inset 0 0 10px rgba(23, 193, 223, 0.07)",
                         alignItems: "flex-start",
@@ -309,6 +320,9 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                     }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <span style={{ fontWeight: 600, fontSize: 13, color: "#666", letterSpacing: 0.5}}>PM2.5 for next hours :</span>
+                            {isPredictLoading && (
+                                <span style={{ fontSize: 10, color: "#17C1DF", fontWeight: 500, fontStyle: "italic" }}>Loading prediction...</span>
+                            )}
                         </div>
                         <div style={{
                             display: "flex",
@@ -326,13 +340,19 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                                 display: "flex",
                                 flexDirection: "column",
                                 alignItems: "center",
-                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                boxShadow: "0 2px 8px rgba(23, 193, 223, 0.07)",
                                 border: "1px solid #e0f7fa"
                             }}>
                                 <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+1h</span>
                                 <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
-                                    {pm25Prediction !== null && pm25Prediction !== undefined ? pm25Prediction.toFixed(1) : "-"}
-                                    <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
+                                    {isPredictLoading ? (
+                                        <span style={{ color: "#aaa" }}>...</span>
+                                    ) : (
+                                        <>
+                                            {pm25Prediction !== null && pm25Prediction !== undefined ? pm25Prediction.toFixed(1) : "-"}
+                                            <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
+                                        </>
+                                    )}
                                 </span>
                             </div>
                             <div style={{
@@ -344,7 +364,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                                 display: "flex",
                                 flexDirection: "column",
                                 alignItems: "center",
-                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                boxShadow: "0 2px 8px rgba(23, 193, 223, 0.07)",
                                 border: "1px solid #e0f7fa"
                             }}>
                                 <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+3h</span>
@@ -362,7 +382,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                                 display: "flex",
                                 flexDirection: "column",
                                 alignItems: "center",
-                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                boxShadow: "0 2px 8px rgba(23, 193, 223, 0.07)",
                                 border: "1px solid #e0f7fa"
                             }}>
                                 <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+12h</span>
@@ -380,7 +400,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                                 display: "flex",
                                 flexDirection: "column",
                                 alignItems: "center",
-                                boxShadow: "0 2px 8px rgba(23,193,223,0.07)",
+                                boxShadow: "0 2px 8px rgba(23, 193, 223, 0.07)",
                                 border: "1px solid #e0f7fa"
                             }}>
                                 <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+24h</span>
