@@ -1,6 +1,5 @@
 import {Viewer, ImageryLayer, Entity} from "resium";
 import {UrlTemplateImageryProvider, Ion, Cartesian3, NearFarScalar} from "cesium";
-
 import {BACKEND_URL, CESIUM_ION_TOKEN} from "../config/config.ts";
 import styles from './MainPage.module.css';
 import HomeButton from "../components/HomeButton.tsx";
@@ -30,6 +29,7 @@ export default function MainPage() {
     const greenIcon = getIcon("greenStateIcon");
     const redIcon = getIcon("redStateIcon");
     const yellowIcon = getIcon("yellowStateIcon");
+    const markerIcon = getIcon("markerIcon");
 
     const viewerRef =  useRef<any>(null);
 
@@ -89,7 +89,7 @@ export default function MainPage() {
             const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
             viewerRef.current.cesiumElement.camera.flyTo({
                 destination: flyToPosition,
-                duration: 2
+                duration: 2,
             });
         }
     };
@@ -156,22 +156,37 @@ export default function MainPage() {
 
                 {stations.map(station => {
                     const position = Cartesian3.fromDegrees(station.lng, station.lat);
+                    const isSelected = selectedStation?.id === station.id;
 
                     return (
-                        <Entity
-                            key={station.id}
-                            name={station.name}
-                            position={position}
-                            billboard={{
-                                image: getStationIcon(station),
-                                scaleByDistance: new NearFarScalar(
-                                    2.0e5, 0.02,
-                                    5.0e7, 0.001
-                                ),
-                                disableDepthTestDistance: Number.POSITIVE_INFINITY
-                            }}
-                            onClick={() => handleStationClick(station)}
-                        />
+                        <>
+                            {isSelected && (
+                                <Entity
+                                    key={`marker-${station.id}`}
+                                    name={`Selected: ${station.name}`}
+                                    position={position}
+                                    billboard={{
+                                        image: markerIcon,
+                                        scale: 0.08,
+                                        disableDepthTestDistance: Number.POSITIVE_INFINITY
+                                    }}
+                                />
+                            )}
+                            <Entity
+                                key={station.id}
+                                name={station.name}
+                                position={position}
+                                billboard={{
+                                    image: getStationIcon(station),
+                                    scaleByDistance: new NearFarScalar(
+                                        2.0e5, 0.02,
+                                        5.0e7, 0.001
+                                    ),
+                                    disableDepthTestDistance: Number.POSITIVE_INFINITY
+                                }}
+                                onClick={() => handleStationClick(station)}
+                            />
+                        </>
                     );
                 })}
 

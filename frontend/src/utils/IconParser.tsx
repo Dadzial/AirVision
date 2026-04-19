@@ -11,6 +11,7 @@ import redStateIcon from '../assets/red_air_state.png'
 import faceRed from '../assets/svg/face_red.svg'
 import faceYellow from '../assets/svg/face_yellow.svg'
 import faceGreen from '../assets/svg/face_green.svg'
+import markerIcon from '../assets/svg/cricle_glow.svg'
 
 export const IconsParser = {
     homeIcon,
@@ -25,7 +26,8 @@ export const IconsParser = {
 
     faceRed,
     faceGreen,
-    faceYellow
+    faceYellow,
+    markerIcon
 };
 
 export const getIcon = (name: keyof typeof IconsParser) => IconsParser[name];
