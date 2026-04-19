@@ -18,41 +18,84 @@ ChartJS.register(
 
 interface CityPanelProps {
     station: Station;
-    measurements: Measurement | null;
+    measurements: Measurement[];
     weather: Weather | null;
     onClose: () => void;
     pm25Prediction: number | null;
 }
 
-const data = {
-    labels: ['Jan', 'Feb', 'Mar'],
-    datasets: [
-        {
-            label: 'Sales',
-            data: [30, 45, 60],
-            borderColor: 'rgb(75, 192, 192)',
-        },
-    ],
-};
-
 export default function CityPanel({onClose , station , measurements, weather,pm25Prediction}: CityPanelProps) {
 
-    const flagSrc = getFlagByCountryCode(station.country);
+    const flagSrc = getFlagByCountryCode(station.country || "");
     const faceGreen = getIcon("faceGreen")
     const faceYellow = getIcon("faceYellow")
     const faceRed = getIcon("faceRed")
 
-    const displayLocation = (station.city && station.city !== "null") ? station.city : station.name;
+    const displayLocation = (station.city && station.city !== "null") ? station.city : (station.name || "Unknown");
     const isSame = (station.city === station.name) || !station.city;
     
+    const latestMeasurement = measurements.length > 0 ? measurements[measurements.length - 1] : null;
 
     const selectFaceByPm25 = () => {
-        if (!measurements || measurements.pm25 === undefined || measurements.pm25 === null) return faceGreen;
-        const pm25 = measurements.pm25;
+        if (!latestMeasurement || latestMeasurement.pm25 === undefined || latestMeasurement.pm25 === null) return faceGreen;
+        const pm25 = latestMeasurement.pm25;
         if (pm25 <= 15) return faceGreen;
         if (pm25 <= 35) return faceYellow;
         return faceRed;
     }
+
+    const chartData = {
+        labels: measurements.map(m => m.datetime ? new Date(m.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""),
+        datasets: [
+            {
+                label: 'PM2.5 (µg/m³)',
+                data: measurements.map(m => m.pm25),
+                borderColor: '#17C1DF',
+                backgroundColor: 'rgba(23, 193, 223, 0.2)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#17C1DF',
+                pointRadius: 3,
+            },
+        ],
+    };
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                mode: 'index' as const,
+                intersect: false,
+            },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)',
+                },
+                ticks: {
+                    font: {
+                        size: 9
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false,
+                },
+                ticks: {
+                    font: {
+                        size: 9
+                    }
+                }
+            },
+        },
+    };
 
     return (
         <div style={{
@@ -92,7 +135,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
             )}
 
             <div style={{ marginTop: "2px", width: "100%"}}>
-                {measurements ? (
+                {latestMeasurement ? (
                     <div style={{
                         width: "100%",
                         background: "rgba(23, 193, 223, 0.08)",
@@ -110,7 +153,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                                 Current PM2.5
                             </p>
                             <p style={{ margin: "0", color: "#222", fontSize: "24px", fontWeight: "700", display: "flex", alignItems: "baseline", gap: "4px" }}>
-                                {measurements.pm25}
+                                {latestMeasurement.pm25}
                                 <span style={{ fontSize: "12px", fontWeight: "500", color: "#888" }}>µg/m³</span>
                             </p>
                         </div>
@@ -138,9 +181,9 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
             </div>
 
             <div style={{ margin: "2px 0 0 0", width: "100%"}}>
-                {measurements ? (
+                {latestMeasurement ? (
                     <p style={{ fontSize: "10px", color: "#888", textAlign:"end", margin: 0 }}>
-                        Update: {new Date(measurements.datetime).toLocaleString()}
+                        Update: {new Date(latestMeasurement.datetime).toLocaleString()}
                     </p>
                 ) : null}
             </div>
@@ -258,7 +301,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                         boxSizing: "border-box",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "8px",
+                        gap: "5px",
                         border: "1px solid rgba(23, 193, 223, 0.25)",
                         boxShadow: "inset 0 0 10px rgba(23, 193, 223, 0.07)",
                         alignItems: "flex-start",
@@ -353,8 +396,17 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                     <span style={{ fontSize: 10, color: "#888" }}>Fetching weather data...</span>
                 )}
             </div>
-            <Line data={data}/>
-            <span onClick={onClose} style={{ cursor:'pointer', fontSize: "13px", color: "#c13b3b", alignSelf: "flex-end", marginTop: "4px", fontWeight: "bold" }}>
+            {measurements.length > 0 && (
+                <div style={{ width: "100%", marginTop: "15px" }}>
+                    <span style={{ fontWeight: 600, fontSize: 12, color: "#666", letterSpacing: 0.5, marginBottom: "8px", display: "block" }}>
+                        PM2.5 History
+                    </span>
+                    <div style={{ height: "180px", width: "100%" }}>
+                        <Line data={chartData} options={chartOptions}/>
+                    </div>
+                </div>
+            )}
+            <span onClick={onClose} style={{ cursor:'pointer', fontSize: "13px", color: "#c13b3b", alignSelf: "flex-end", marginTop: "10px", fontWeight: "bold" }}>
                 Close
             </span>
         </div>

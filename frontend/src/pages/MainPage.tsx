@@ -192,7 +192,7 @@ export default function MainPage() {
                             setPredict(null);
                         }}
                         station={selectedStation}
-                        measurements={selectedMeasurements.length > 0 ? selectedMeasurements[0] : null}
+                        measurements={selectedMeasurements}
                         weather={weather}
                         pm25Prediction={predict ? predict.pm25Predicted : null}
                     />
