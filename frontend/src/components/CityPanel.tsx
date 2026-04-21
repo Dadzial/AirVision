@@ -2,7 +2,8 @@ import { Line } from 'react-chartjs-2';
 import {Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend} from 'chart.js';
 import { Station } from "../services/FetchStations";
 import { Measurement } from "../services/FetchMeasurements.ts";
-import {type Weather } from "../services/FetchWeather.ts";
+import { type Weather } from "../services/FetchWeather.ts";
+import { Predictions } from "../services/FetchPm25Predict.ts";
 import { getFlagByCountryCode } from "../utils/FlagParser";
 import {getIcon} from "../utils/IconParser.tsx";
 
@@ -21,11 +22,11 @@ interface CityPanelProps {
     measurements: Measurement[];
     weather: Weather | null;
     onClose: () => void;
-    pm25Prediction: number | null;
+    pm25Predictions: Predictions | null;
     isPredictLoading: boolean;
 }
 
-export default function CityPanel({onClose , station , measurements, weather,pm25Prediction, isPredictLoading}: CityPanelProps) {
+export default function CityPanel({onClose , station , measurements, weather, pm25Predictions, isPredictLoading}: CityPanelProps) {
 
     const flagSrc = getFlagByCountryCode(station.country || "");
     const faceGreen = getIcon("faceGreen")
@@ -45,12 +46,13 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
         return faceRed;
     }
 
+    const recentMeasurements = measurements.slice(-24);
     const chartData = {
-        labels: measurements.map(m => m.datetime ? new Date(m.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""),
+        labels: recentMeasurements.map(m => m.datetime ? new Date(m.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""),
         datasets: [
             {
                 label: 'PM2.5 (µg/m³)',
-                data: measurements.map(m => m.pm25),
+                data: recentMeasurements.map(m => m.pm25),
                 borderColor: '#17C1DF',
                 backgroundColor: 'rgba(23, 193, 223, 0.2)',
                 tension: 0.3,
@@ -96,6 +98,11 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                 }
             },
         },
+    };
+
+    const renderPredictionValue = (val: number | null | undefined) => {
+        if (isPredictLoading) return <span style={{ color: "#aaa" }}>...</span>;
+        return val !== null && val !== undefined ? val.toFixed(1) : "-";
     };
 
     return (
@@ -189,15 +196,6 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                 ) : null}
             </div>
             <div style={{ margin: "2px 0 0 0", width: "100%" }}>
-                <style>
-                    {`
-                        @keyframes pulse {
-                            0% { background-color: rgba(23, 193, 223, 0.10); }
-                            50% { background-color: rgba(23, 193, 223, 0.25); }
-                            100% { background-color: rgba(23, 193, 223, 0.10); }
-                        }
-                    `}
-                </style>
                 {weather ? (
                     <>
                     <div style={{
@@ -345,14 +343,8 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                             }}>
                                 <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+1h</span>
                                 <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
-                                    {isPredictLoading ? (
-                                        <span style={{ color: "#aaa" }}>...</span>
-                                    ) : (
-                                        <>
-                                            {pm25Prediction !== null && pm25Prediction !== undefined ? pm25Prediction.toFixed(1) : "-"}
-                                            <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
-                                        </>
-                                    )}
+                                    {renderPredictionValue(pm25Predictions?.["1h"])}
+                                    <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
                                 </span>
                             </div>
                             <div style={{
@@ -369,7 +361,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                             }}>
                                 <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+3h</span>
                                 <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
-                                    -
+                                    {renderPredictionValue(pm25Predictions?.["3h"])}
                                     <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
                                 </span>
                             </div>
@@ -387,7 +379,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                             }}>
                                 <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+12h</span>
                                 <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
-                                    -
+                                    {renderPredictionValue(pm25Predictions?.["12h"])}
                                     <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
                                 </span>
                             </div>
@@ -405,7 +397,7 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                             }}>
                                 <span style={{ fontSize: 11, color: "#17C1DF", fontWeight: 500 }}>+24h</span>
                                 <span style={{ fontSize: 17, fontWeight: 700, color: "#222", display: "flex", alignItems: "center", gap: 4 }}>
-                                    -
+                                    {renderPredictionValue(pm25Predictions?.["24h"])}
                                     <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>µg/m³</span>
                                 </span>
                             </div>
@@ -416,10 +408,10 @@ export default function CityPanel({onClose , station , measurements, weather,pm2
                     <span style={{ fontSize: 10, color: "#888" }}>Fetching weather data...</span>
                 )}
             </div>
-            {measurements.length > 0 && (
+            {recentMeasurements.length > 0 && (
                 <div style={{ width: "100%", marginTop: "15px" }}>
                     <span style={{ fontWeight: 600, fontSize: 12, color: "#666", letterSpacing: 0.5, marginBottom: "8px", display: "block" }}>
-                        PM2.5 History
+                        PM2.5 History (Last 24h)
                     </span>
                     <div style={{ height: "180px", width: "100%" }}>
                         <Line data={chartData} options={chartOptions}/>

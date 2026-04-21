@@ -9,7 +9,7 @@ import CityPanel from "../components/CityPanel.tsx";
 import {useEffect, useState, useRef} from "react";
 import { fetchStations, type Station } from "../services/FetchStations.ts";
 import {fetchMeasurements, type Measurement} from "../services/FetchMeasurements.ts";
-import {fetchPm25Predict, type Predict} from "../services/FetchPm25Predict.ts";
+import { fetchPm25Predict, type Predictions } from "../services/FetchPm25Predict.ts";
 import {getIcon} from "../utils/IconParser.tsx";
 import Scale from "../components/Scale.tsx";
 import GpsButton from "../components/GpsButton.tsx";
@@ -25,7 +25,7 @@ export default function MainPage() {
     const [selectedStation, setSelectedStation] = useState<Station | null>(null);
     const [selectedMeasurements, setSelectedMeasurements] = useState<Measurement[]>([]);
     const [weather, setWeather] = useState<Weather | null>(null);
-    const [predict, setPredict] = useState<Predict | null>(null);
+    const [predict, setPredict] = useState<Predictions | null>(null);
     const [isPredictLoading, setIsPredictLoading] = useState<boolean>(false);
     const greenIcon = getIcon("greenStateIcon");
     const redIcon = getIcon("redStateIcon");
@@ -213,7 +213,7 @@ export default function MainPage() {
                         station={selectedStation}
                         measurements={selectedMeasurements}
                         weather={weather}
-                        pm25Prediction={predict ? predict.pm25Predicted : null}
+                        pm25Predictions={predict}
                         isPredictLoading={isPredictLoading}
                     />
                 )}

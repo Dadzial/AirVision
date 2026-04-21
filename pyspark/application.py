@@ -166,7 +166,9 @@ if training_data_exists():
     test_df  = build_features(test_raw)
 
     train_df.show(10)
-    train_gbt_model(train_df, test_df)
+
+    for horizon in [1, 3 , 12, 24]:
+        train_gbt_model(train_df, test_df, horizon)
 else:
     locations = load_locations()
     collect_data(session, locations)
