@@ -3,6 +3,8 @@ import airIcon from '../assets/air.png';
 import search from '../assets/search.png'
 import gpsIcon from '../assets/gps-icon.png'
 import refreshIcon from '../assets/refresh.png'
+import pointsIcon from '../assets/points.png'
+import layerIcon from '../assets/layers.png'
 
 import greenStateIcon from '../assets/green_air_state.png'
 import yellowStateIcon from '../assets/yellow_air_state.png'
@@ -19,6 +21,8 @@ export const IconsParser = {
     search,
     gpsIcon,
     refreshIcon,
+    pointsIcon,
+    layerIcon,
 
     greenStateIcon,
     yellowStateIcon,

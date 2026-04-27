@@ -48,7 +48,7 @@ def _fetch_last_pm25(location_id: int, pm25_sensor_ids: list[int]) -> float | No
             except ValueError:
                 continue
 
-            # Odrzuć odczyty starsze niż 2 tygodnie
+
             if dt < TWO_WEEKS_AGO:
                 continue
 
@@ -158,7 +158,7 @@ def fetch_pm25_stations(db: Session) -> int:
                         else:
                             existing_station.last_pm25 = last_pm25_val
 
-                        # Oznacz jako prawidłową
+
                         valid_station_ids.add(loc["id"])
 
                     db.commit()

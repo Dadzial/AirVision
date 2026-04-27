@@ -1,6 +1,7 @@
-import {Viewer, ImageryLayer, Entity} from "resium";
-import {UrlTemplateImageryProvider, Ion, Cartesian3, NearFarScalar} from "cesium";
+import {Viewer, ImageryLayer, Entity, GeoJsonDataSource} from "resium";
+import {UrlTemplateImageryProvider, Ion, Cartesian3, NearFarScalar, Color} from "cesium";
 import {BACKEND_URL, CESIUM_ION_TOKEN} from "../config/config.ts";
+import europeGeoJson from '../assets/geo-json/europe.geojson?url';
 import styles from './MainPage.module.css';
 import HomeButton from "../components/HomeButton.tsx";
 import SearchBar from "../components/SearchBar.tsx";
@@ -15,6 +16,7 @@ import Scale from "../components/Scale.tsx";
 import GpsButton from "../components/GpsButton.tsx";
 import RefreshButton from "../components/RefreshButton.tsx";
 import { FetchWeather, type Weather } from "../services/FetchWeather.ts";
+import LayerButton from "../components/LayerButton.tsx";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
 
@@ -27,6 +29,7 @@ export default function MainPage() {
     const [weather, setWeather] = useState<Weather | null>(null);
     const [predict, setPredict] = useState<Predictions | null>(null);
     const [isPredictLoading, setIsPredictLoading] = useState<boolean>(false);
+    const [showGeoJson, setShowGeoJson] = useState<boolean>(false);
     const greenIcon = getIcon("greenStateIcon");
     const redIcon = getIcon("redStateIcon");
     const yellowIcon = getIcon("yellowStateIcon");
@@ -157,6 +160,14 @@ export default function MainPage() {
                     }
                 />
 
+                <GeoJsonDataSource
+                    data={europeGeoJson}
+                    show={showGeoJson}
+                    stroke={Color.fromCssColorString("#17C1DF")}
+                    fill={Color.fromCssColorString("#17C1DF").withAlpha(0.2)}
+                    strokeWidth={2}
+                />
+
                 {stations.map(station => {
                     const position = Cartesian3.fromDegrees(station.lng, station.lat);
                     const isSelected = selectedStation?.id === station.id;
@@ -222,8 +233,11 @@ export default function MainPage() {
             <div className={styles.controlsBottomRight}>
                 <Scale />
                 <GpsButton onGps={handleGps} />
+                <LayerButton 
+                    switchLayer={() => setShowGeoJson(!showGeoJson)} 
+                    isVisible={showGeoJson} 
+                />
             </div>
-
             </Viewer>
         </div>
     );

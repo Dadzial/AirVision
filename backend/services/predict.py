@@ -38,7 +38,7 @@ def prepare_model_input(measurements, weathers, station):
     ts = latest_m.timestamp
     day_of_week_spark = (ts.weekday() + 1) % 7 + 1
     
-    # Kolejność musi być identyczna jak w feature_cols w train_model.py
+
     return {
         "pm25": float(latest_m.pm25),
         "temperature": float(latest_w.temperature),
