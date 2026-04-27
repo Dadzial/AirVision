@@ -29,13 +29,45 @@ export default function MainPage() {
     const [weather, setWeather] = useState<Weather | null>(null);
     const [predict, setPredict] = useState<Predictions | null>(null);
     const [isPredictLoading, setIsPredictLoading] = useState<boolean>(false);
-    const [showGeoJson, setShowGeoJson] = useState<boolean>(false);
+    const [showGeoJson, setShowGeoJson] = useState<boolean>(true);
+    const [filteredGeoJson, setFilteredGeoJson] = useState<any>(null);
+
     const greenIcon = getIcon("greenStateIcon");
     const redIcon = getIcon("redStateIcon");
     const yellowIcon = getIcon("yellowStateIcon");
     const markerIcon = getIcon("markerIcon");
 
     const viewerRef =  useRef<any>(null);
+
+    useEffect(() => {
+        const loadGeoJsonAndFilter = async () => {
+            try {
+                const response = await fetch(europeGeoJson);
+                const geojsonData = await response.json();
+
+                if (stations.length > 0) {
+                    const countryCodes = new Set(stations.map(s => {
+                        return s.country; 
+                    }));
+
+                    const filteredFeatures = geojsonData.features.filter((feature: any) => 
+                        countryCodes.has(feature.properties.ISO2)
+                    );
+
+                    setFilteredGeoJson({
+                        ...geojsonData,
+                        features: filteredFeatures
+                    });
+                } else {
+                    setFilteredGeoJson(geojsonData);
+                }
+            } catch (error) {
+                console.error("Error loading or filtering GeoJSON:", error);
+            }
+        };
+
+        loadGeoJsonAndFilter();
+    }, [stations]);
 
     useEffect(() => {
        const loadAirStations = async () => {
@@ -160,13 +192,15 @@ export default function MainPage() {
                     }
                 />
 
-                <GeoJsonDataSource
-                    data={europeGeoJson}
-                    show={showGeoJson}
-                    stroke={Color.fromCssColorString("#17C1DF")}
-                    fill={Color.fromCssColorString("#17C1DF").withAlpha(0.2)}
-                    strokeWidth={2}
-                />
+                {filteredGeoJson && (
+                    <GeoJsonDataSource
+                        data={filteredGeoJson}
+                        show={showGeoJson}
+                        stroke={Color.fromCssColorString("#17C1DF")}
+                        fill={Color.fromCssColorString("#17C1DF").withAlpha(0.2)}
+                        strokeWidth={2}
+                    />
+                )}
 
                 {stations.map(station => {
                     const position = Cartesian3.fromDegrees(station.lng, station.lat);
