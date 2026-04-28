@@ -2,10 +2,12 @@ import { Line } from 'react-chartjs-2';
 import {Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend} from 'chart.js';
 import { Station } from "../services/FetchStations";
 import { Measurement } from "../services/FetchMeasurements.ts";
+import { fetchMeasurementHistory, MeasurementHistory } from "../services/FetchMeasurementsHistory.ts";
 import { type Weather } from "../services/FetchWeather.ts";
 import { Predictions } from "../services/FetchPm25Predict.ts";
 import { getFlagByCountryCode } from "../utils/FlagParser";
 import {getIcon} from "../utils/IconParser.tsx";
+import { useEffect, useState } from 'react';
 
 ChartJS.register(
     CategoryScale,
@@ -27,6 +29,12 @@ interface CityPanelProps {
 }
 
 export default function CityPanel({onClose , station , measurements, weather, pm25Predictions, isPredictLoading}: CityPanelProps) {
+    const [history, setHistory] = useState<MeasurementHistory[]>([]);
+
+    useEffect(() => {
+        setHistory([]);
+        fetchMeasurementHistory(station.id).then(setHistory);
+    }, [station.id]);
 
     const flagSrc = getFlagByCountryCode(station.country || "");
     const faceGreen = getIcon("faceGreen")
@@ -46,13 +54,12 @@ export default function CityPanel({onClose , station , measurements, weather, pm
         return faceRed;
     }
 
-    const recentMeasurements = measurements.slice(-24);
     const chartData = {
-        labels: recentMeasurements.map(m => m.datetime ? new Date(m.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""),
+        labels: history.map(m => m.datetime ? new Date(m.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""),
         datasets: [
             {
                 label: 'PM2.5 (µg/m³)',
-                data: recentMeasurements.map(m => m.pm25),
+                data: history.map(m => m.pm25),
                 borderColor: '#17C1DF',
                 backgroundColor: 'rgba(23, 193, 223, 0.2)',
                 tension: 0.3,
@@ -408,16 +415,29 @@ export default function CityPanel({onClose , station , measurements, weather, pm
                     <span style={{ fontSize: 10, color: "#888" }}>Fetching weather data...</span>
                 )}
             </div>
-            {recentMeasurements.length > 0 && (
-                <div style={{ width: "100%", marginTop: "15px" }}>
-                    <span style={{ fontWeight: 600, fontSize: 12, color: "#666", letterSpacing: 0.5, marginBottom: "8px", display: "block" }}>
-                        PM2.5 History (Last 24h)
-                    </span>
-                    <div style={{ height: "180px", width: "100%" }}>
+            <div style={{ width: "100%", marginTop: "15px" }}>
+                <span style={{ fontWeight: 600, fontSize: 12, color: "#666", letterSpacing: 0.5, marginBottom: "8px", display: "block" }}>
+                    PM2.5 History (Last 24h)
+                </span>
+                <div style={{ height: "180px", width: "100%" }}>
+                    {history.length > 0 ? (
                         <Line data={chartData} options={chartOptions}/>
-                    </div>
+                    ) : (
+                        <div style={{
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "rgba(23, 193, 223, 0.05)",
+                            borderRadius: "10px",
+                            color: "#888",
+                            fontSize: "12px"
+                        }}>
+                            No measurement data available
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
             <span onClick={onClose} style={{ cursor:'pointer', fontSize: "13px", color: "#c13b3b", alignSelf: "flex-end", marginTop: "10px", fontWeight: "bold" }}>
                 Close
             </span>

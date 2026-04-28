@@ -66,3 +66,35 @@ def fetch_latest_measurements(station_id: int, db: Session):
     db.commit()
 
     return [{"pm25": val, "datetime": raw_datetime}]
+
+
+def fetch_last_24h_measurements(station_id: int):
+    loc_req = requests.get(
+        f"https://api.openaq.org/v3/locations/{station_id}",
+        headers=OPENAQ_HEADERS
+    )
+    loc_req.raise_for_status()
+    loc_results = loc_req.json().get("results", [])
+
+    if not loc_results:
+        return []
+
+    sensors = loc_results[0].get("sensors", [])
+    pm25_sensor = next((s for s in sensors if s["parameter"]["name"] == "pm25"), None)
+
+    if not pm25_sensor:
+        return []
+
+    sensor_id = pm25_sensor["id"]
+
+    date_from = (datetime.now(timezone.utc) - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    
+    hist_req = requests.get(
+        f"https://api.openaq.org/v3/sensors/{sensor_id}/hours",
+        headers=OPENAQ_HEADERS,
+        params={"date_from": date_from, "limit": 24}
+    )
+    hist_req.raise_for_status()
+    results = hist_req.json().get("results", [])
+
+    return [{"pm25": r["value"], "datetime": r.get("period", {}).get("datetimeTo", {}).get("utc")} for r in results if r["value"] >= 0]
