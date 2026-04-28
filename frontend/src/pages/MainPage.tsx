@@ -7,7 +7,7 @@ import HomeButton from "../components/HomeButton.tsx";
 import SearchBar from "../components/SearchBar.tsx";
 import Header from "../components/Header.tsx";
 import CityPanel from "../components/CityPanel.tsx";
-import {useEffect, useState, useRef} from "react";
+import {useEffect, useState, useRef, Fragment} from "react";
 import { fetchStations, type Station } from "../services/FetchStations.ts";
 import {fetchMeasurements, type Measurement} from "../services/FetchMeasurements.ts";
 import { fetchPm25Predict, type Predictions } from "../services/FetchPm25Predict.ts";
@@ -17,8 +17,38 @@ import GpsButton from "../components/GpsButton.tsx";
 import RefreshButton from "../components/RefreshButton.tsx";
 import { FetchWeather, type Weather } from "../services/FetchWeather.ts";
 import LayerButton from "../components/LayerButton.tsx";
+import {getFlagByCountryCode} from "../utils/FlagParser.tsx";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
+
+const getFeatureCenter = (feature: any): { lat: number, lng: number } => {
+    if (feature.properties.LAT !== undefined && feature.properties.LON !== undefined) {
+        return {
+            lat: feature.properties.LAT,
+            lng: feature.properties.LON
+        };
+    }
+
+    let coordinates: any[] = [];
+    if (feature.geometry.type === "Polygon") {
+        coordinates = feature.geometry.coordinates[0];
+    } else if (feature.geometry.type === "MultiPolygon") {
+        coordinates = feature.geometry.coordinates[0][0];
+    }
+
+    let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+    coordinates.forEach((coord: any) => {
+        if (coord[0] < minLng) minLng = coord[0];
+        if (coord[0] > maxLng) maxLng = coord[0];
+        if (coord[1] < minLat) minLat = coord[1];
+        if (coord[1] > maxLat) maxLat = coord[1];
+    });
+
+    return {
+        lat: (minLat + maxLat) / 2,
+        lng: (minLng + maxLng) / 2
+    };
+};
 
 export default function MainPage() {
     const homePosition = Cartesian3.fromDegrees(0, 50, 3600000);
@@ -50,87 +80,121 @@ export default function MainPage() {
                         return s.country; 
                     }));
 
-                    const filteredFeatures = geojsonData.features.filter((feature: any) => 
-                        countryCodes.has(feature.properties.ISO2)
-                    );
+                    const filteredFeatures = geojsonData.features
+                        .filter((feature: any) => countryCodes.has(feature.properties.ISO2))
+                        .map((feature: any) => {
+                            const center = getFeatureCenter(feature);
+                            return {
+                                ...feature,
+                                properties: {
+                                    ...feature.properties,
+                                    centerLat: center.lat,
+                                    centerLng: center.lng
+                                }
+                            };
+                        });
 
                     setFilteredGeoJson({
                         ...geojsonData,
                         features: filteredFeatures
                     });
                 } else {
-                    setFilteredGeoJson(geojsonData);
+                    const featuresWithCenters = geojsonData.features.map((feature: any) => {
+                        const center = getFeatureCenter(feature);
+                        return {
+                            ...feature,
+                            properties: {
+                                ...feature.properties,
+                                centerLat: center.lat,
+                                centerLng: center.lng
+                            }
+                        };
+                    });
+                    setFilteredGeoJson({
+                        ...geojsonData,
+                        features: featuresWithCenters
+                    });
                 }
-            } catch (error) {
+                } catch (error) {
                 console.error("Error loading or filtering GeoJSON:", error);
-            }
-        };
+                }
+                };
 
-        loadGeoJsonAndFilter();
-    }, [stations]);
+                loadGeoJsonAndFilter();
+                }, [stations]);
 
-    useEffect(() => {
-       const loadAirStations = async () => {
-         const  data = await fetchStations();
-         setStations(data);
-         setLoading(false);
-       };
+                useEffect(() => {
+                const loadAirStations = async () => {
+                const  data = await fetchStations();
+                setStations(data);
+                setLoading(false);
+                };
 
-       loadAirStations();
-    },[])
+                loadAirStations();
+                },[])
 
-    useEffect(() => {
-        const refreshPm25 = async () => {
-            const response = await fetch(`${BACKEND_URL}/api/stations/pm25`);
-            const data = await response.json();
-            setStations(prev =>
+                useEffect(() => {
+                const refreshPm25 = async () => {
+                const response = await fetch(`${BACKEND_URL}/api/stations/pm25`);
+                const data = await response.json();
+                setStations(prev =>
                 prev.map(station => {
                     const update = data.updates.find((u: any) => u.id === station.id);
                     return update ? { ...station, last_pm25: update.last_pm25 } : station;
                 })
-            );
-        };
+                );
+                };
 
-        const interval = setInterval(refreshPm25, 60 * 60 * 1000);
-        return () => clearInterval(interval);
-    }, []);
+                const interval = setInterval(refreshPm25, 60 * 60 * 1000);
+                return () => clearInterval(interval);
+                }, []);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (viewerRef.current && viewerRef.current.cesiumElement) {
+                useEffect(() => {
+                const timer = setTimeout(() => {
+                if (viewerRef.current && viewerRef.current.cesiumElement) {
                 viewerRef.current.cesiumElement.camera.flyTo({
                     destination: homePosition,
                     duration: 2,
                 });
-            }
-        }, 100);
-        return () => clearTimeout(timer);
-    }, []);
+                }
+                }, 100);
+                return () => clearTimeout(timer);
+                }, []);
 
-    const handleStationClick = async (station: Station) => {
-        if (viewerRef.current && viewerRef.current.cesiumElement) {
-            const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
-            viewerRef.current.cesiumElement.camera.flyTo({
+                const handleStationClick = async (station: Station) => {
+                if (viewerRef.current && viewerRef.current.cesiumElement) {
+                const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
+                viewerRef.current.cesiumElement.camera.flyTo({
                 destination: flyToPosition,
                 duration: 2,
-            });
-        }
+                });
+                }
 
-        setSelectedStation(station);
-        setSelectedMeasurements([]);
-        setWeather(null);
-        setPredict(null);
-        setIsPredictLoading(true);
+                setSelectedStation(station);
+                setSelectedMeasurements([]);
+                setWeather(null);
+                setPredict(null);
+                setIsPredictLoading(true);
 
 
-        fetchMeasurements(station.id).then(setSelectedMeasurements);
-        FetchWeather(station.id).then(setWeather);
-        
-        fetchPm25Predict(station.id).then(predictData => {
-            setPredict(predictData);
-            setIsPredictLoading(false);
-        }).catch(() => setIsPredictLoading(false));
-    };
+                fetchMeasurements(station.id).then(setSelectedMeasurements);
+                FetchWeather(station.id).then(setWeather);
+
+                fetchPm25Predict(station.id).then(predictData => {
+                setPredict(predictData);
+                setIsPredictLoading(false);
+                }).catch(() => setIsPredictLoading(false));
+                };
+
+                const handleCountryClick = (lat: number, lng: number) => {
+                if (viewerRef.current && viewerRef.current.cesiumElement) {
+                const flyToCountry = Cartesian3.fromDegrees(lng, lat, 1500000);
+                viewerRef.current.cesiumElement.camera.flyTo({
+                destination: flyToCountry,
+                duration: 2,
+                });
+                }
+                }
 
     const getStationIcon = (station: Station) => {
         const isSelected = selectedStation?.id === station.id;
@@ -199,15 +263,46 @@ export default function MainPage() {
                         stroke={Color.fromCssColorString("#17C1DF")}
                         fill={Color.fromCssColorString("#17C1DF").withAlpha(0.2)}
                         strokeWidth={2}
+                        onClick={(_movement, target) => {
+                            const entity = (target as any)?.id;
+                            if (entity && entity.properties) {
+                                const lat = entity.properties.centerLat?.getValue();
+                                const lng = entity.properties.centerLng?.getValue();
+                                if (lat !== undefined && lng !== undefined) {
+                                    handleCountryClick(lat, lng);
+                                }
+                            }
+                        }}
                     />
                 )}
 
-                {stations.map(station => {
+                {showGeoJson && filteredGeoJson?.features.map((feature: any) => {
+                    const centerLat = feature.properties.centerLat;
+                    const centerLng = feature.properties.centerLng;
+                    const flag = getFlagByCountryCode(feature.properties.ISO2);
+                    
+                    if (!flag || centerLat === undefined || centerLng === undefined) return null;
+
+                    return (
+                        <Entity
+                            key={`flag-${feature.properties.ISO2}`}
+                            position={Cartesian3.fromDegrees(centerLng, centerLat)}
+                            billboard={{
+                                image: flag,
+                                scale: 0.07,
+                                disableDepthTestDistance: Number.POSITIVE_INFINITY
+                            }}
+                            onClick={() => handleCountryClick(centerLat, centerLng)}
+                        />
+                    );
+                })}
+
+                {!showGeoJson && stations.map(station => {
                     const position = Cartesian3.fromDegrees(station.lng, station.lat);
                     const isSelected = selectedStation?.id === station.id;
 
                     return (
-                        <>
+                        <Fragment key={station.id}>
                             {isSelected && (
                                 <Entity
                                     key={`marker-${station.id}`}
@@ -234,7 +329,7 @@ export default function MainPage() {
                                 }}
                                 onClick={() => handleStationClick(station)}
                             />
-                        </>
+                        </Fragment>
                     );
                 })}
 

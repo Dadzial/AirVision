@@ -5,10 +5,6 @@ export interface MeasurementHistory {
     datetime: string;
 }
 
-interface MeasurementHistoryResponse {
-    measurementsHistory: MeasurementHistory[];
-}
-
 export const fetchMeasurementHistory = async (station_id: number): Promise<MeasurementHistory[]> => {
     try{
         const response = await fetch(`${BACKEND_URL}/api/measurements/${station_id}/history`);
