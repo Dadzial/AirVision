@@ -77,7 +77,7 @@ export default function MainPage() {
 
                 if (stations.length > 0) {
                     const countryCodes = new Set(stations.map(s => {
-                        return s.country; 
+                        return s.country;
                     }));
 
                     const filteredFeatures = geojsonData.features
@@ -115,93 +115,93 @@ export default function MainPage() {
                         features: featuresWithCenters
                     });
                 }
-                } catch (error) {
+            } catch (error) {
                 console.error("Error loading or filtering GeoJSON:", error);
-                }
-                };
+            }
+        };
 
-                loadGeoJsonAndFilter();
-                }, [stations]);
+        loadGeoJsonAndFilter();
+    }, [stations]);
 
-                useEffect(() => {
-                const loadAirStations = async () => {
-                const  data = await fetchStations();
-                setStations(data);
-                setLoading(false);
-                };
+    useEffect(() => {
+        const loadAirStations = async () => {
+            const  data = await fetchStations();
+            setStations(data);
+            setLoading(false);
+        };
 
-                loadAirStations();
-                },[])
+        loadAirStations();
+    },[])
 
-                useEffect(() => {
-                const refreshPm25 = async () => {
-                const response = await fetch(`${BACKEND_URL}/api/stations/pm25`);
-                const data = await response.json();
-                setStations(prev =>
+    useEffect(() => {
+        const refreshPm25 = async () => {
+            const response = await fetch(`${BACKEND_URL}/api/stations/pm25`);
+            const data = await response.json();
+            setStations(prev =>
                 prev.map(station => {
                     const update = data.updates.find((u: any) => u.id === station.id);
                     return update ? { ...station, last_pm25: update.last_pm25 } : station;
                 })
-                );
-                };
+            );
+        };
 
-                const interval = setInterval(refreshPm25, 60 * 60 * 1000);
-                return () => clearInterval(interval);
-                }, []);
+        const interval = setInterval(refreshPm25, 60 * 60 * 1000);
+        return () => clearInterval(interval);
+    }, []);
 
-                useEffect(() => {
-                const timer = setTimeout(() => {
-                if (viewerRef.current && viewerRef.current.cesiumElement) {
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (viewerRef.current && viewerRef.current.cesiumElement) {
                 viewerRef.current.cesiumElement.camera.flyTo({
                     destination: homePosition,
                     duration: 2,
                 });
-                }
-                }, 100);
-                return () => clearTimeout(timer);
-                }, []);
+            }
+        }, 100);
+        return () => clearTimeout(timer);
+    }, []);
 
-                const handleStationClick = async (station: Station) => {
-                if (viewerRef.current && viewerRef.current.cesiumElement) {
-                const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
-                viewerRef.current.cesiumElement.camera.flyTo({
+    const handleStationClick = async (station: Station) => {
+        if (viewerRef.current && viewerRef.current.cesiumElement) {
+            const flyToPosition = Cartesian3.fromDegrees(station.lng, station.lat, 200000);
+            viewerRef.current.cesiumElement.camera.flyTo({
                 destination: flyToPosition,
                 duration: 2,
-                });
-                }
+            });
+        }
 
-                setSelectedStation(station);
-                setSelectedMeasurements([]);
-                setWeather(null);
-                setPredict(null);
-                setIsPredictLoading(true);
+        setSelectedStation(station);
+        setSelectedMeasurements([]);
+        setWeather(null);
+        setPredict(null);
+        setIsPredictLoading(true);
 
 
-                fetchMeasurements(station.id).then(setSelectedMeasurements);
-                FetchWeather(station.id).then(setWeather);
+        fetchMeasurements(station.id).then(setSelectedMeasurements);
+        FetchWeather(station.id).then(setWeather);
 
-                fetchPm25Predict(station.id).then(predictData => {
-                setPredict(predictData);
-                setIsPredictLoading(false);
-                }).catch(() => setIsPredictLoading(false));
-                };
+        fetchPm25Predict(station.id).then(predictData => {
+            setPredict(predictData);
+            setIsPredictLoading(false);
+        }).catch(() => setIsPredictLoading(false));
+    };
 
-                const handleCountryClick = (lat: number, lng: number) => {
-                if (viewerRef.current && viewerRef.current.cesiumElement) {
-                const flyToCountry = Cartesian3.fromDegrees(lng, lat, 1500000);
-                viewerRef.current.cesiumElement.camera.flyTo({
+    const handleCountryClick = (lat: number, lng: number) => {
+        if (viewerRef.current && viewerRef.current.cesiumElement) {
+            const flyToCountry = Cartesian3.fromDegrees(lng, lat, 1500000);
+            viewerRef.current.cesiumElement.camera.flyTo({
                 destination: flyToCountry,
                 duration: 2,
-                });
-                }
-                }
+            });
+        }
+    }
 
     const getStationIcon = (station: Station) => {
         const isSelected = selectedStation?.id === station.id;
         const liveVal = isSelected && selectedMeasurements.length > 0 ? selectedMeasurements[0].pm25 : null;
 
         const val = liveVal ?? station.last_pm25;
-        
+
         if (val === null || val === undefined) return greenIcon;
 
         if (val <= 12) return greenIcon;
@@ -280,7 +280,7 @@ export default function MainPage() {
                     const centerLat = feature.properties.centerLat;
                     const centerLng = feature.properties.centerLng;
                     const flag = getFlagByCountryCode(feature.properties.ISO2);
-                    
+
                     if (!flag || centerLat === undefined || centerLng === undefined) return null;
 
                     return (
@@ -290,7 +290,8 @@ export default function MainPage() {
                             billboard={{
                                 image: flag,
                                 scale: 0.07,
-                                disableDepthTestDistance: Number.POSITIVE_INFINITY
+                                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+
                             }}
                             onClick={() => handleCountryClick(centerLat, centerLng)}
                         />
@@ -333,40 +334,40 @@ export default function MainPage() {
                     );
                 })}
 
-            <div className={styles.controls}>
+                <div className={styles.controls}>
 
-                <div className={styles.controlsTop}>
-                    <SearchBar/>
-                    <RefreshButton onStationsUpdate={setStations}/>
-                    <HomeButton/>
+                    <div className={styles.controlsTop}>
+                        <SearchBar/>
+                        <RefreshButton onStationsUpdate={setStations}/>
+                        <HomeButton/>
+                    </div>
+
+                    {selectedStation && (
+                        <CityPanel
+                            onClose={() => {
+                                setSelectedStation(null);
+                                setSelectedMeasurements([]);
+                                setWeather(null);
+                                setPredict(null);
+                                setIsPredictLoading(false);
+                            }}
+                            station={selectedStation}
+                            measurements={selectedMeasurements}
+                            weather={weather}
+                            pm25Predictions={predict}
+                            isPredictLoading={isPredictLoading}
+                        />
+                    )}
                 </div>
-                
-                {selectedStation && (
-                    <CityPanel
-                        onClose={() => {
-                            setSelectedStation(null);
-                            setSelectedMeasurements([]);
-                            setWeather(null);
-                            setPredict(null);
-                            setIsPredictLoading(false);
-                        }}
-                        station={selectedStation}
-                        measurements={selectedMeasurements}
-                        weather={weather}
-                        pm25Predictions={predict}
-                        isPredictLoading={isPredictLoading}
-                    />
-                )}
-            </div>
 
-            <div className={styles.controlsBottomRight}>
-                <Scale />
-                <GpsButton onGps={handleGps} />
-                <LayerButton 
-                    switchLayer={() => setShowGeoJson(!showGeoJson)} 
-                    isVisible={showGeoJson} 
-                />
-            </div>
+                <div className={styles.controlsBottomRight}>
+                    <Scale />
+                    <GpsButton onGps={handleGps} />
+                    <LayerButton
+                        switchLayer={() => setShowGeoJson(!showGeoJson)}
+                        isVisible={showGeoJson}
+                    />
+                </div>
             </Viewer>
         </div>
     );
