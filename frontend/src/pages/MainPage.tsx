@@ -29,7 +29,7 @@ export default function MainPage() {
     const [weather, setWeather] = useState<Weather | null>(null);
     const [predict, setPredict] = useState<Predictions | null>(null);
     const [isPredictLoading, setIsPredictLoading] = useState<boolean>(false);
-    const [showGeoJson, setShowGeoJson] = useState<boolean>(true);
+    const [showGeoJson, setShowGeoJson] = useState<boolean>(false);
     const [filteredGeoJson, setFilteredGeoJson] = useState<any>(null);
 
     const greenIcon = getIcon("greenStateIcon");
