@@ -1,5 +1,11 @@
 import {Viewer, ImageryLayer, Entity, GeoJsonDataSource} from "resium";
-import {UrlTemplateImageryProvider, Ion, Cartesian3, NearFarScalar, Color} from "cesium";
+import {
+    UrlTemplateImageryProvider,
+    Ion,
+    Cartesian3,
+    NearFarScalar,
+    Color
+} from "cesium";
 import {BACKEND_URL, CESIUM_ION_TOKEN} from "../config/config.ts";
 import europeGeoJson from '../assets/geo-json/europe.geojson?url';
 import styles from './MainPage.module.css';
@@ -18,6 +24,7 @@ import RefreshButton from "../components/RefreshButton.tsx";
 import { FetchWeather, type Weather } from "../services/FetchWeather.ts";
 import LayerButton from "../components/LayerButton.tsx";
 import {getFlagByCountryCode} from "../utils/FlagParser.tsx";
+import {createCountryLabelCanvas} from "../utils/LabelGenerator.tsx";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
 
@@ -61,6 +68,7 @@ export default function MainPage() {
     const [isPredictLoading, setIsPredictLoading] = useState<boolean>(false);
     const [showGeoJson, setShowGeoJson] = useState<boolean>(false);
     const [filteredGeoJson, setFilteredGeoJson] = useState<any>(null);
+    const [countryLabelImages, setCountryLabelImages] = useState<Record<string, HTMLCanvasElement>>({});
 
     const greenIcon = getIcon("greenStateIcon");
     const redIcon = getIcon("redStateIcon");
@@ -89,7 +97,8 @@ export default function MainPage() {
                                 properties: {
                                     ...feature.properties,
                                     centerLat: center.lat,
-                                    centerLng: center.lng
+                                    centerLng: center.lng,
+
                                 }
                             };
                         });
@@ -122,6 +131,37 @@ export default function MainPage() {
 
         loadGeoJsonAndFilter();
     }, [stations]);
+
+    useEffect(() => {
+        if (!showGeoJson || !filteredGeoJson) return;
+
+        const generateLabels = async () => {
+            const missingCodes = filteredGeoJson.features
+                .map((f: any) => f.properties.ISO2)
+                .filter((code: string) => !countryLabelImages[code]);
+
+            if (missingCodes.length === 0) return;
+
+            const newLabels: Record<string, HTMLCanvasElement> = {};
+            for (const feature of filteredGeoJson.features) {
+                const countryCode = feature.properties.ISO2;
+                if (missingCodes.includes(countryCode)) {
+                    const countryName = feature.properties.NAME;
+                    const flag = getFlagByCountryCode(countryCode);
+                    if (flag) {
+                        const canvas = await createCountryLabelCanvas(flag, countryName);
+                        newLabels[countryCode] = canvas;
+                    }
+                }
+            }
+
+            if (Object.keys(newLabels).length > 0) {
+                setCountryLabelImages(prev => ({ ...prev, ...newLabels }));
+            }
+        };
+
+        generateLabels();
+    }, [showGeoJson, filteredGeoJson, countryLabelImages]);
 
     useEffect(() => {
         const loadAirStations = async () => {
@@ -279,19 +319,19 @@ export default function MainPage() {
                 {showGeoJson && filteredGeoJson?.features.map((feature: any) => {
                     const centerLat = feature.properties.centerLat;
                     const centerLng = feature.properties.centerLng;
-                    const flag = getFlagByCountryCode(feature.properties.ISO2);
+                    const countryCode = feature.properties.ISO2;
+                    const labelImage = countryLabelImages[countryCode];
 
-                    if (!flag || centerLat === undefined || centerLng === undefined) return null;
+                    if (!labelImage || centerLat === undefined || centerLng === undefined) return null;
 
                     return (
                         <Entity
-                            key={`flag-${feature.properties.ISO2}`}
+                            key={`flag-${countryCode}`}
                             position={Cartesian3.fromDegrees(centerLng, centerLat)}
                             billboard={{
-                                image: flag,
-                                scale: 0.07,
+                                image: labelImage,
+                                scale: 0.4,
                                 disableDepthTestDistance: Number.POSITIVE_INFINITY,
-
                             }}
                             onClick={() => handleCountryClick(centerLat, centerLng)}
                         />
@@ -327,6 +367,9 @@ export default function MainPage() {
                                         5.0e7, 0.001
                                     ),
                                     disableDepthTestDistance: Number.POSITIVE_INFINITY
+                                }}
+                                label={{
+
                                 }}
                                 onClick={() => handleStationClick(station)}
                             />
