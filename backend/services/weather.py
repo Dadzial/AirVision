@@ -12,7 +12,7 @@ def fetch_and_store_weather(db: Session, station_id:int,lat: float, lng: float, 
             "longitude": lng,
             "start_date": date_from,
             "end_date": date_to,
-            "hourly": "temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,precipitation",
+            "hourly": "temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,wind_direction_10m,precipitation",
             "timezone": "UTC"
         },
         timeout=30
@@ -33,6 +33,7 @@ def fetch_and_store_weather(db: Session, station_id:int,lat: float, lng: float, 
             humidity=data["hourly"]["relative_humidity_2m"][i],
             pressure=data["hourly"]["pressure_msl"][i],
             wind_speed=data["hourly"]["wind_speed_10m"][i],
+            wind_deg=data["hourly"]["wind_direction_10m"][i],
             precipitation=data["hourly"]["precipitation"][i],
         )
         db.add(weather)
@@ -52,7 +53,7 @@ def fetch_and_store_latest_weather(db: Session, station_id: int):
             "longitude": station.lng,
             "start_date": now,
             "end_date": now,
-            "hourly": "temperature_2m,relative_humidity_2m,pressure_msl,windspeed_10m,precipitation",
+            "hourly": "temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,wind_direction_10m,precipitation",
             "timezone": "UTC"
         },
         timeout=30
@@ -60,7 +61,7 @@ def fetch_and_store_latest_weather(db: Session, station_id: int):
     if resp.status_code != 200:
         return None
     data = resp.json()
-    if "hourly" not in data or not all(k in data["hourly"] for k in ["time", "temperature_2m", "relative_humidity_2m", "pressure_msl", "windspeed_10m", "precipitation"]):
+    if "hourly" not in data or not all(k in data["hourly"] for k in ["time", "temperature_2m", "relative_humidity_2m", "pressure_msl", "wind_speed_10m", "wind_direction_10m", "precipitation"]):
         return None
 
 
@@ -84,7 +85,8 @@ def fetch_and_store_latest_weather(db: Session, station_id: int):
         temperature=data["hourly"]["temperature_2m"][idx],
         humidity=data["hourly"]["relative_humidity_2m"][idx],
         pressure=data["hourly"]["pressure_msl"][idx],
-        wind_speed=data["hourly"]["windspeed_10m"][idx],
+        wind_speed=data["hourly"]["wind_speed_10m"][idx],
+        wind_deg=data["hourly"]["wind_direction_10m"][idx],
         precipitation=data["hourly"]["precipitation"][idx],
     )
     db.add(weather)

@@ -13,5 +13,6 @@ class DBWeather(Base):
     humidity = Column(Float)
     pressure = Column(Float)
     wind_speed = Column(Float)
+    wind_deg = Column(Float)
     precipitation = Column(Float)
     station = relationship("DBStation", back_populates="weather")

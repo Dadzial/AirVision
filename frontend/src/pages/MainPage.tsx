@@ -1,13 +1,12 @@
-import {Viewer, ImageryLayer, Entity, GeoJsonDataSource} from "resium";
+import {Viewer, ImageryLayer, Entity} from "resium";
 import {
     UrlTemplateImageryProvider,
     Ion,
     Cartesian3,
     NearFarScalar,
-    Color
+
 } from "cesium";
 import {BACKEND_URL, CESIUM_ION_TOKEN} from "../config/config.ts";
-import europeGeoJson from '../assets/geo-json/europe.geojson?url';
 import styles from './MainPage.module.css';
 import HomeButton from "../components/HomeButton.tsx";
 import SearchBar from "../components/SearchBar.tsx";
@@ -22,40 +21,10 @@ import Scale from "../components/Scale.tsx";
 import GpsButton from "../components/GpsButton.tsx";
 import RefreshButton from "../components/RefreshButton.tsx";
 import { FetchWeather, type Weather } from "../services/FetchWeather.ts";
-import LayerButton from "../components/LayerButton.tsx";
-import {getFlagByCountryCode} from "../utils/FlagParser.tsx";
-import {createCountryLabelCanvas} from "../utils/LabelGenerator.tsx";
+import DirectionArrow from "../components/DirectionArrow.tsx";
+import Ranking from "../components/Ranking";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
-
-const getFeatureCenter = (feature: any): { lat: number, lng: number } => {
-    if (feature.properties.LAT !== undefined && feature.properties.LON !== undefined) {
-        return {
-            lat: feature.properties.LAT,
-            lng: feature.properties.LON
-        };
-    }
-
-    let coordinates: any[] = [];
-    if (feature.geometry.type === "Polygon") {
-        coordinates = feature.geometry.coordinates[0];
-    } else if (feature.geometry.type === "MultiPolygon") {
-        coordinates = feature.geometry.coordinates[0][0];
-    }
-
-    let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
-    coordinates.forEach((coord: any) => {
-        if (coord[0] < minLng) minLng = coord[0];
-        if (coord[0] > maxLng) maxLng = coord[0];
-        if (coord[1] < minLat) minLat = coord[1];
-        if (coord[1] > maxLat) maxLat = coord[1];
-    });
-
-    return {
-        lat: (minLat + maxLat) / 2,
-        lng: (minLng + maxLng) / 2
-    };
-};
 
 export default function MainPage() {
     const homePosition = Cartesian3.fromDegrees(0, 50, 3600000);
@@ -66,9 +35,6 @@ export default function MainPage() {
     const [weather, setWeather] = useState<Weather | null>(null);
     const [predict, setPredict] = useState<Predictions | null>(null);
     const [isPredictLoading, setIsPredictLoading] = useState<boolean>(false);
-    const [showGeoJson, setShowGeoJson] = useState<boolean>(false);
-    const [filteredGeoJson, setFilteredGeoJson] = useState<any>(null);
-    const [countryLabelImages, setCountryLabelImages] = useState<Record<string, HTMLCanvasElement>>({});
 
     const greenIcon = getIcon("greenStateIcon");
     const redIcon = getIcon("redStateIcon");
@@ -77,91 +43,6 @@ export default function MainPage() {
 
     const viewerRef =  useRef<any>(null);
 
-    useEffect(() => {
-        const loadGeoJsonAndFilter = async () => {
-            try {
-                const response = await fetch(europeGeoJson);
-                const geojsonData = await response.json();
-
-                if (stations.length > 0) {
-                    const countryCodes = new Set(stations.map(s => {
-                        return s.country;
-                    }));
-
-                    const filteredFeatures = geojsonData.features
-                        .filter((feature: any) => countryCodes.has(feature.properties.ISO2))
-                        .map((feature: any) => {
-                            const center = getFeatureCenter(feature);
-                            return {
-                                ...feature,
-                                properties: {
-                                    ...feature.properties,
-                                    centerLat: center.lat,
-                                    centerLng: center.lng,
-
-                                }
-                            };
-                        });
-
-                    setFilteredGeoJson({
-                        ...geojsonData,
-                        features: filteredFeatures
-                    });
-                } else {
-                    const featuresWithCenters = geojsonData.features.map((feature: any) => {
-                        const center = getFeatureCenter(feature);
-                        return {
-                            ...feature,
-                            properties: {
-                                ...feature.properties,
-                                centerLat: center.lat,
-                                centerLng: center.lng
-                            }
-                        };
-                    });
-                    setFilteredGeoJson({
-                        ...geojsonData,
-                        features: featuresWithCenters
-                    });
-                }
-            } catch (error) {
-                console.error("Error loading or filtering GeoJSON:", error);
-            }
-        };
-
-        loadGeoJsonAndFilter();
-    }, [stations]);
-
-    useEffect(() => {
-        if (!showGeoJson || !filteredGeoJson) return;
-
-        const generateLabels = async () => {
-            const missingCodes = filteredGeoJson.features
-                .map((f: any) => f.properties.ISO2)
-                .filter((code: string) => !countryLabelImages[code]);
-
-            if (missingCodes.length === 0) return;
-
-            const newLabels: Record<string, HTMLCanvasElement> = {};
-            for (const feature of filteredGeoJson.features) {
-                const countryCode = feature.properties.ISO2;
-                if (missingCodes.includes(countryCode)) {
-                    const countryName = feature.properties.NAME;
-                    const flag = getFlagByCountryCode(countryCode);
-                    if (flag) {
-                        const canvas = await createCountryLabelCanvas(flag, countryName);
-                        newLabels[countryCode] = canvas;
-                    }
-                }
-            }
-
-            if (Object.keys(newLabels).length > 0) {
-                setCountryLabelImages(prev => ({ ...prev, ...newLabels }));
-            }
-        };
-
-        generateLabels();
-    }, [showGeoJson, filteredGeoJson, countryLabelImages]);
 
     useEffect(() => {
         const loadAirStations = async () => {
@@ -226,15 +107,6 @@ export default function MainPage() {
         }).catch(() => setIsPredictLoading(false));
     };
 
-    const handleCountryClick = (lat: number, lng: number) => {
-        if (viewerRef.current && viewerRef.current.cesiumElement) {
-            const flyToCountry = Cartesian3.fromDegrees(lng, lat, 1500000);
-            viewerRef.current.cesiumElement.camera.flyTo({
-                destination: flyToCountry,
-                duration: 2,
-            });
-        }
-    }
 
     const getStationIcon = (station: Station) => {
         const isSelected = selectedStation?.id === station.id;
@@ -296,49 +168,7 @@ export default function MainPage() {
                     }
                 />
 
-                {filteredGeoJson && (
-                    <GeoJsonDataSource
-                        data={filteredGeoJson}
-                        show={showGeoJson}
-                        stroke={Color.fromCssColorString("#17C1DF")}
-                        fill={Color.fromCssColorString("#17C1DF").withAlpha(0.2)}
-                        strokeWidth={2}
-                        onClick={(_movement, target) => {
-                            const entity = (target as any)?.id;
-                            if (entity && entity.properties) {
-                                const lat = entity.properties.centerLat?.getValue();
-                                const lng = entity.properties.centerLng?.getValue();
-                                if (lat !== undefined && lng !== undefined) {
-                                    handleCountryClick(lat, lng);
-                                }
-                            }
-                        }}
-                    />
-                )}
-
-                {showGeoJson && filteredGeoJson?.features.map((feature: any) => {
-                    const centerLat = feature.properties.centerLat;
-                    const centerLng = feature.properties.centerLng;
-                    const countryCode = feature.properties.ISO2;
-                    const labelImage = countryLabelImages[countryCode];
-
-                    if (!labelImage || centerLat === undefined || centerLng === undefined) return null;
-
-                    return (
-                        <Entity
-                            key={`flag-${countryCode}`}
-                            position={Cartesian3.fromDegrees(centerLng, centerLat)}
-                            billboard={{
-                                image: labelImage,
-                                scale: 0.4,
-                                disableDepthTestDistance: Number.POSITIVE_INFINITY,
-                            }}
-                            onClick={() => handleCountryClick(centerLat, centerLng)}
-                        />
-                    );
-                })}
-
-                {!showGeoJson && stations.map(station => {
+                {stations.map(station => {
                     const position = Cartesian3.fromDegrees(station.lng, station.lat);
                     const isSelected = selectedStation?.id === station.id;
 
@@ -368,15 +198,11 @@ export default function MainPage() {
                                     ),
                                     disableDepthTestDistance: Number.POSITIVE_INFINITY
                                 }}
-                                label={{
-
-                                }}
                                 onClick={() => handleStationClick(station)}
                             />
                         </Fragment>
                     );
                 })}
-
                 <div className={styles.controls}>
 
                     <div className={styles.controlsTop}>
@@ -403,13 +229,12 @@ export default function MainPage() {
                     )}
                 </div>
 
+                <Ranking/>
+
                 <div className={styles.controlsBottomRight}>
                     <Scale />
                     <GpsButton onGps={handleGps} />
-                    <LayerButton
-                        switchLayer={() => setShowGeoJson(!showGeoJson)}
-                        isVisible={showGeoJson}
-                    />
+                    <DirectionArrow degree={weather?.wind_deg} />
                 </div>
             </Viewer>
         </div>

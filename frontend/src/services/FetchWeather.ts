@@ -10,6 +10,7 @@ export interface Weather {
     humidity: number;
     pressure: number;
     wind_speed: number;
+    wind_deg: number;
     precipitation: number;
 }
 

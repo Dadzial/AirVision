@@ -12,6 +12,7 @@ class Weather(BaseModel):
     humidity: Optional[float] = None
     pressure: Optional[float] = None
     wind_speed: Optional[float] = None
+    wind_deg: Optional[float] = None
     precipitation: Optional[float] = None
 
 class WeatherResponse(BaseModel):
