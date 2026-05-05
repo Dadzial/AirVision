@@ -23,7 +23,7 @@ export default function RefreshButton({ onStationsUpdate }: RefreshButtonProps) 
                 })
             );
         } catch (e) {
-            console.error("Błąd odświeżania:", e);
+            console.error("Error :", e);
         } finally {
             setIsRefreshing(false);
         }
