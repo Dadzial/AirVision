@@ -55,11 +55,11 @@ export default function RefreshButton({ onStationsUpdate }: RefreshButtonProps) 
                     width: 22,
                     height: 22,
                     marginRight: 2,
-                    marginBottom: 1,
+                    marginBottom: 2,
                     animation: isRefreshing ? "spin 1s linear infinite" : "none"
                 }}
             />
-            {isRefreshing ? "Refreshing..." : "Refresh"}
+            {isRefreshing ? "Refreshing Data..." : ""}
             <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
         </button>
     );

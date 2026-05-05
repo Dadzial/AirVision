@@ -5,7 +5,7 @@ export interface DirectionArrowProps {
 }
 
 export default function DirectionArrow ({ degree = 0 }: DirectionArrowProps) {
-    const compassIcon = getIcon('compassIcon');
+    const windIcon = getIcon('windDeg');
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -22,10 +22,10 @@ export default function DirectionArrow ({ degree = 0 }: DirectionArrowProps) {
                 title={`Wind Direction: ${degree}°`}
             >
                 <img
-                    src={compassIcon}
+                    src={windIcon}
                     alt="Wind Direction" 
                     style={{ 
-                        width: 30, 
+                        width: 30,
                         height: 30,
                         transform: `rotate(${degree}deg)`,
                         transition: "transform 0.5s ease-in-out",
