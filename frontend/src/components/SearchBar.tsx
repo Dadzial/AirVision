@@ -59,7 +59,8 @@ export default function SearchBar() {
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            minWidth: "280px"
+            flex: 1,
+            minWidth: 0
         }}>
             <img
                 src={iconSrc}
@@ -84,7 +85,11 @@ export default function SearchBar() {
                     background: "transparent",
                     outline: "none",
                     fontSize: "14px",
-                    color: "#333"
+                    color: "#333",
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap"
                 }}
             />
             <div

@@ -126,6 +126,7 @@ export default function CityPanel({onClose , station , measurements, weather, pm
             flexDirection: "column",
             alignItems: "flex-start",
             gap: "5px",
+            overflowY: "auto",
         }}
         >
             <span style={{ fontSize: "18px", fontWeight: "600", color: "#17C1DF", display: "flex", alignItems: "center", gap: "8px", wordBreak: "break-word" }}>

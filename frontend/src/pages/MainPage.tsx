@@ -26,7 +26,11 @@ import Ranking from "../components/Ranking";
 
 Ion.defaultAccessToken = CESIUM_ION_TOKEN;
 
-export default function MainPage() {
+interface MainPageProps {
+    onError?: (message: string) => void;
+}
+
+export default function MainPage({ onError }: MainPageProps) {
     const homePosition = Cartesian3.fromDegrees(0, 50, 3600000);
     const [stations, setStations] = useState<Station[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -233,7 +237,7 @@ export default function MainPage() {
 
                 <div className={styles.controlsBottomRight}>
                     <Scale />
-                    <GpsButton onGps={handleGps} />
+                    <GpsButton onGps={handleGps} onError={onError} />
                     <DirectionArrow degree={weather?.wind_deg} />
                 </div>
             </Viewer>
