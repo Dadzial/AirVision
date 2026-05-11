@@ -112,13 +112,34 @@ html, body {
     }
 }
 
-@keyframes slideDown {
-    from {
-        transform: translate(-50%, 0);
-        opacity: 1;
-    }
-    to {
-        transform: translate(-50%, 200%);
-        opacity: 0;
-    }
+.controls::-webkit-scrollbar {
+    width: 6px;
 }
+
+.controls::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.controls::-webkit-scrollbar-thumb {
+    background: rgba(23, 193, 223, 0.2);
+    border-radius: 10px;
+}
+
+.controls::-webkit-scrollbar-thumb:hover {
+    background: rgba(23, 193, 223, 0.4);
+}
+
+/* Also apply to CityPanel which has its own overflow */
+.controls > *::-webkit-scrollbar {
+    width: 4px;
+}
+
+.controls > *::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.controls > *::-webkit-scrollbar-thumb {
+    background: rgba(23, 193, 223, 0.3);
+    border-radius: 10px;
+}
+
