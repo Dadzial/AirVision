@@ -3,15 +3,14 @@ import { getIcon } from "../utils/IconParser.tsx";
 
 type GpsButtonProps = {
     onGps?: (coords: { lat: number; lng: number }) => void;
+    onError?: (message: string) => void;
 };
 
-export default function GpsButton({ onGps }: GpsButtonProps) {
+export default function GpsButton({ onGps, onError }: GpsButtonProps) {
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     const handleClick = () => {
         setLoading(true);
-        setError(null);
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -22,14 +21,18 @@ export default function GpsButton({ onGps }: GpsButtonProps) {
                     };
                     if (onGps) onGps(coords);
                 },
-                () => {
+                (error) => {
                     setLoading(false);
-                    setError("Location unavailable");
+                    let message = "Location unavailable";
+                    if (error.code === error.PERMISSION_DENIED) {
+                        message = "Location access denied";
+                    }
+                    if (onError) onError(message);
                 }
             );
         } else {
             setLoading(false);
-            setError("Geolocation not supported");
+            if (onError) onError("Geolocation not supported");
         }
     };
 
@@ -53,7 +56,6 @@ export default function GpsButton({ onGps }: GpsButtonProps) {
             >
                 <img src={iconSrc} alt="GPS" style={{ width: 30, height: 30 }} />
             </button>
-            {error && <span style={{ color: "red", fontSize: 12 }}>{error}</span>}
         </div>
     );
 }

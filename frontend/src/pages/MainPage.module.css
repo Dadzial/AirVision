@@ -14,6 +14,25 @@ html, body {
     flex-direction: column;
     gap: 8px;
     z-index: 1000;
+    max-height: calc(100vh - 120px);
+    width: 380px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .controls {
+        width: auto;
+        left: 10px;
+        right: 10px;
+        max-height: calc(100vh - 140px);
+    }
+
+    .controlsBottomRight {
+        flex-direction: column;
+        bottom: 10px;
+        right: 10px;
+        gap: 8px;
+    }
 }
 
 .controlsTop {
@@ -52,13 +71,54 @@ html, body {
     animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.errorPopup {
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    background-color: #ff4d4f;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.errorPopupHidden {
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    background-color: #ff4d4f;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @keyframes slideUp {
     from {
-        transform: translate(-50%, 150%);
+        transform: translate(-50%, 200%);
         opacity: 0;
     }
     to {
         transform: translate(-50%, 0);
         opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+    to {
+        transform: translate(-50%, 200%);
+        opacity: 0;
     }
 }
