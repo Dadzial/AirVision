@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { IconsParser } from "../utils/IconParser";
+import {getFlagByCountryCode} from "../utils/FlagParser.tsx";
+import {fetchStations, type Station } from "../services/FetchStations.ts";
+import {fetchMeasurements, type Measurement} from "../services/FetchMeasurements.ts";
 
 interface RankingRecord {
     flag: string;
     country: string;
     station: string;
     pm25: number;
+}
+
+interface RankingProps {
+    station: Station;
+    measurements: Measurement[];
 }
 
 type SortOrder = "asc" | "desc";
@@ -42,7 +50,7 @@ function RankingList() {
 
     return (
         <div>
-            {/* Pasek wyszukiwania i sortowania */}
+
             <div
                 style={{
                     display: "flex",
@@ -53,7 +61,7 @@ function RankingList() {
                     alignItems: "center",
                 }}
             >
-                {/* Search bar po lewej */}
+
                 <div
                     style={{
                         flex: 1,
@@ -98,7 +106,7 @@ function RankingList() {
                     />
                 </div>
 
-                {/* Sort dropdown po prawej */}
+
                 <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value as SortOrder)}
@@ -126,7 +134,7 @@ function RankingList() {
                 </select>
             </div>
 
-            {/* Lista rekordów */}
+
             {records.map((record, index) => (
                 <div
                     key={index}
@@ -149,12 +157,12 @@ function RankingList() {
                             index % 2 === 0 ? "#F9FAFB" : "white";
                     }}
                 >
-                    {/* Flaga */}
+
                     <div style={{ fontSize: "24px", minWidth: "32px" }}>
                         {record.flag}
                     </div>
 
-                    {/* Kolumna: Kraj i Stacja */}
+
                     <div
                         style={{
                             flex: 1,
@@ -174,7 +182,7 @@ function RankingList() {
                             {record.country}
                         </div>
 
-                        {/* Nazwa stacji */}
+
                         <div
                             style={{
                                 fontSize: "13px",
@@ -189,7 +197,7 @@ function RankingList() {
                         </div>
                     </div>
 
-                    {/* PM25 */}
+
                     <div
                         style={{
                             minWidth: "50px",
@@ -207,8 +215,10 @@ function RankingList() {
     );
 }
 
-export default function Ranking() {
+export default function Ranking({station, measurements}: RankingProps) {
     const [open, setOpen] = useState(false);
+    const [stations, setStations] = useState<Station[]>([]
+    const flagSrc = getFlagByCountryCode(station.country || "");
 
     return (
         <div
@@ -286,7 +296,7 @@ export default function Ranking() {
                         overflowY: "auto",
                     }}
                 >
-                    {/* Ranking stacji */}
+
                     <RankingList />
                 </div>
             </div>
