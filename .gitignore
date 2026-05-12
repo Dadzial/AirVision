@@ -12,7 +12,7 @@
 # Editor-based HTTP Client requests
 /httpRequests/
 
-#Local env
+#Local .env
 .env
 frontend/.env
 

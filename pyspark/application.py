@@ -13,7 +13,7 @@ from pyspark.sql.functions import unix_timestamp, col
 from dotenv import load_dotenv
 
 #Loading env and spark
-load_dotenv("../.env")
+load_dotenv("../..env")
 os.environ['JAVA_HOME'] = os.getenv("JAVA_HOME")
 findspark.init(os.getenv("SPARK_HOME"))
 
