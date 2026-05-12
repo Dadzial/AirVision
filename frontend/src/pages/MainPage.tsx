@@ -233,7 +233,7 @@ export default function MainPage({ onError }: MainPageProps) {
                     )}
                 </div>
 
-                <Ranking/>
+                 <Ranking onStationSelect={handleStationClick} />
 
                 <div className={styles.controlsBottomRight}>
                     <Scale />

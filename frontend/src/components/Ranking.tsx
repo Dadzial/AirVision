@@ -1,7 +1,7 @@
 import { useState ,useEffect} from "react";
 import { IconsParser } from "../utils/IconParser";
 import {getFlagByCountryCode} from "../utils/FlagParser.tsx";
-import {fetchStations} from "../services/FetchStations.ts";
+import {fetchStations, type Station} from "../services/FetchStations.ts";
 
 const countryNames: Record<string, string> = {
     PL: "Poland",
@@ -21,9 +21,10 @@ const countryNames: Record<string, string> = {
 interface RankingRecord {
     flag: string;
     country: string;
-    station: string;
+    stationName: string;
     pm25: number;
     stationId: number;
+    station: Station;
 }
 
 interface RankingListProps {
@@ -32,14 +33,15 @@ interface RankingListProps {
     setSortOrder: (order: SortOrder) => void;
     searchQuery: string;
     setSearchQuery: (query: string) => void;
+    onStationSelect: (station: Station) => void;
 }
 
 type SortOrder = "asc" | "desc";
 
-function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQuery }: RankingListProps) {
+function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQuery  , onStationSelect }: RankingListProps) {
     const filteredRecords = records.filter(
         (record) =>
-            record.station.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            record.stationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             record.country.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -48,8 +50,8 @@ function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQ
     });
 
     const getColor = (pm25: number): string => {
-        if (pm25 < 35) return "#10B981";
-        if (pm25 < 75) return "#F59E0B";
+        if (pm25 < 15) return "#10B981";
+        if (pm25 < 35) return "#F59E0B";
         return "#EF4444";
     };
 
@@ -142,7 +144,7 @@ function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQ
 
             {displayRecords.map((record, index) => (
                 <div
-                    key={index}
+                    key={record.stationId}
                     style={{
                         display: "flex",
                         alignItems: "center",
@@ -154,6 +156,7 @@ function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQ
                         transition: "all 0.2s ease",
                         cursor: "pointer",
                     }}
+                    onClick={() => onStationSelect(record.station)}
                     onMouseEnter={(e) => {
                         (e.currentTarget as HTMLDivElement).style.backgroundColor = "#F0F9FF";
                     }}
@@ -206,7 +209,7 @@ function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQ
                                 whiteSpace: "nowrap",
                             }}
                         >
-                            {record.station}
+                            {record.stationName}
                         </div>
                     </div>
 
@@ -228,7 +231,11 @@ function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQ
     );
 }
 
-export default function Ranking() {
+interface RankingProps {
+    onStationSelect: (station: Station) => void;
+}
+
+export default function Ranking({onStationSelect}:RankingProps) {
     const [open, setOpen] = useState(false);
     const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
     const [searchQuery, setSearchQuery] = useState("");
@@ -246,9 +253,10 @@ export default function Ranking() {
                     .map(station => ({
                         flag: getFlagByCountryCode(station.country) || "",
                         country: countryNames[station.country] || station.country,
-                        station: station.name,
+                        stationName: station.name,
                         pm25: station.last_pm25 || 0,
                         stationId: station.id,
+                        station: station
                     }));
 
                 setRecords(rankingRecords);
@@ -354,6 +362,7 @@ export default function Ranking() {
                             setSortOrder={setSortOrder}
                             searchQuery={searchQuery}
                             setSearchQuery={setSearchQuery}
+                            onStationSelect={onStationSelect}
                         />
                     )}
                 </div>
@@ -362,3 +371,4 @@ export default function Ranking() {
         </div>
     );
 }
+

@@ -1,6 +1,5 @@
 import './App.css'
 import MainPage from "./pages/MainPage.tsx";
-import {Station} from "./services/FetchStations.ts";
 import styles from './pages/MainPage.module.css';
 import { useState } from 'react';
 
