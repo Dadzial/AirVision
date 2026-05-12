@@ -1,44 +1,49 @@
 import { useState ,useEffect} from "react";
 import { IconsParser } from "../utils/IconParser";
 import {getFlagByCountryCode} from "../utils/FlagParser.tsx";
-import {fetchStations, type Station } from "../services/FetchStations.ts";
-import {fetchMeasurements, type Measurement} from "../services/FetchMeasurements.ts";
+import {fetchStations} from "../services/FetchStations.ts";
+
+const countryNames: Record<string, string> = {
+    PL: "Poland",
+    GB: "Great Britain",
+    DE: "Germany",
+    AT: "Austria",
+    GR: "Greece",
+    SK: "Slovakia",
+    NL: "Netherlands",
+    FR: "France",
+    ES: "Spain",
+    CZ: "Czechia",
+    SE: "Sweden",
+    IT: "Italy",
+};
 
 interface RankingRecord {
     flag: string;
     country: string;
     station: string;
     pm25: number;
+    stationId: number;
 }
 
-interface RankingProps {
-    station: Station;
-    measurements: Measurement[];
+interface RankingListProps {
+    records: RankingRecord[];
+    sortOrder: SortOrder;
+    setSortOrder: (order: SortOrder) => void;
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
 }
 
 type SortOrder = "asc" | "desc";
 
-function RankingList() {
-    const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-    const [searchQuery, setSearchQuery] = useState("");
-
-    const recordsData: RankingRecord[] = [
-        { flag: "🇵🇱", country: "Polska", station: "Warszawa Centrum", pm25: 45 },
-        { flag: "🇵🇱", country: "Polska", station: "Kraków Śródmieście", pm25: 38 },
-        { flag: "🇩🇪", country: "Niemcy", station: "Berlin Mitte", pm25: 28 },
-        { flag: "🇩🇪", country: "Niemcy", station: "München Altstadt", pm25: 22 },
-        { flag: "🇫🇷", country: "Francja", station: "Paris 8e", pm25: 35 },
-        { flag: "🇬🇧", country: "Wielka Brytania", station: "London City", pm25: 42 },
-        { flag: "🇳🇱", country: "Holandia", station: "Amsterdam", pm25: 31 },
-    ];
-
-    const filteredRecords = recordsData.filter(
+function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQuery }: RankingListProps) {
+    const filteredRecords = records.filter(
         (record) =>
             record.station.toLowerCase().includes(searchQuery.toLowerCase()) ||
             record.country.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const records = [...filteredRecords].sort((a, b) => {
+    const displayRecords = [...filteredRecords].sort((a, b) => {
         return sortOrder === "desc" ? b.pm25 - a.pm25 : a.pm25 - b.pm25;
     });
 
@@ -93,7 +98,7 @@ function RankingList() {
                     />
                     <input
                         type="text"
-                        placeholder="Szukaj stacji..."
+                        placeholder="Search stations..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={{
@@ -129,13 +134,13 @@ function RankingList() {
                         (e.currentTarget as HTMLSelectElement).style.borderColor = "#D1D5DB";
                     }}
                 >
-                    <option value="desc">▼ Najgorsze PM2.5</option>
-                    <option value="asc">▲ Najlepsze PM2.5</option>
+                    <option value="desc">▼ Worst PM2.5</option>
+                    <option value="asc">▲ Best PM2.5</option>
                 </select>
             </div>
 
 
-            {records.map((record, index) => (
+            {displayRecords.map((record, index) => (
                 <div
                     key={index}
                     style={{
@@ -158,9 +163,17 @@ function RankingList() {
                     }}
                 >
 
-                    <div style={{ fontSize: "24px", minWidth: "32px" }}>
-                        {record.flag}
-                    </div>
+                    <img
+                        src={record.flag}
+                        alt={record.country}
+                        style={{
+                            width: "28px",
+                            height: "20px",
+                            borderRadius: "3px",
+                            objectFit: "cover",
+                            flexShrink: 0,
+                        }}
+                    />
 
 
                     <div
@@ -171,7 +184,7 @@ function RankingList() {
                             gap: "2px",
                         }}
                     >
-                        {/* Kraj */}
+                        {/* Country */}
                         <div
                             style={{
                                 fontSize: "12px",
@@ -207,7 +220,7 @@ function RankingList() {
                             color: getColor(record.pm25),
                         }}
                     >
-                        {record.pm25}
+                        {Math.round(record.pm25 * 10) / 10}
                     </div>
                 </div>
             ))}
@@ -215,10 +228,39 @@ function RankingList() {
     );
 }
 
-export default function Ranking({station, measurements}: RankingProps) {
+export default function Ranking() {
     const [open, setOpen] = useState(false);
-    const [stations, setStations] = useState<Station[]>([]
-    const flagSrc = getFlagByCountryCode(station.country || "");
+    const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [records, setRecords] = useState<RankingRecord[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadStations = async () => {
+            setLoading(true);
+            try {
+                const stations = await fetchStations();
+
+                const rankingRecords = stations
+                    .filter(station => station.last_pm25 !== null && station.last_pm25 !== undefined)
+                    .map(station => ({
+                        flag: getFlagByCountryCode(station.country) || "",
+                        country: countryNames[station.country] || station.country,
+                        station: station.name,
+                        pm25: station.last_pm25 || 0,
+                        stationId: station.id,
+                    }));
+
+                setRecords(rankingRecords);
+            } catch (error) {
+                console.error("Error loading stations:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadStations();
+    }, []);
 
     return (
         <div
@@ -292,12 +334,28 @@ export default function Ranking({station, measurements}: RankingProps) {
                     style={{
                         padding: "16px",
                         minHeight: "220px",
-                        maxHeight: "520px",
+                        maxHeight: "550px",
                         overflowY: "auto",
+                        overflowX: "hidden",
                     }}
                 >
-
-                    <RankingList />
+                    {loading ? (
+                        <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
+                            Loading...
+                        </div>
+                    ) : records.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
+                            No stations to display
+                        </div>
+                    ) : (
+                        <RankingList
+                            records={records}
+                            sortOrder={sortOrder}
+                            setSortOrder={setSortOrder}
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                        />
+                    )}
                 </div>
             </div>
 
