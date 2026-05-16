@@ -13,7 +13,12 @@ export const fetchPm25Predict = async (station_id: number): Promise<Predictions 
         if (!response.ok) {
             throw new Error(`Error fetching predicts: ${response.statusText}`);
         }
-        return await response.json();
+        const data = await response.json();
+        if (data.error) {
+            console.warn(`Prediction service error: ${data.error}`);
+            return null;
+        }
+        return data;
     } catch (error) {
         console.error(error);
         return null;

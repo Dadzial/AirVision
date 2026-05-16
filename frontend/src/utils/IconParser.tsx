@@ -13,7 +13,7 @@ import faceYellow from '../assets/svg/face_yellow.svg'
 import faceGreen from '../assets/svg/face_green.svg'
 import markerIcon from '../assets/svg/cricle_glow.svg'
 import windDeg from '../assets/svg/wind_deg.svg'
-
+import StationPoint from '../assets/svg/station_point.svg'
 
 export const IconsParser = {
     homeIcon,
@@ -30,7 +30,8 @@ export const IconsParser = {
     faceGreen,
     faceYellow,
     markerIcon,
-    windDeg
+    windDeg,
+    StationPoint
 };
 
 export const getIcon = (name: keyof typeof IconsParser) => IconsParser[name];

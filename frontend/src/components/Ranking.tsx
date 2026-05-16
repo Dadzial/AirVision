@@ -2,6 +2,7 @@ import { useState ,useEffect} from "react";
 import { IconsParser } from "../utils/IconParser";
 import {getFlagByCountryCode} from "../utils/FlagParser.tsx";
 import {fetchStations, type Station} from "../services/FetchStations.ts";
+import { getAirQualityColor } from "../utils/AirQualityColor.ts";
 
 const countryNames: Record<string, string> = {
     PL: "Poland",
@@ -48,12 +49,6 @@ function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQ
     const displayRecords = [...filteredRecords].sort((a, b) => {
         return sortOrder === "desc" ? b.pm25 - a.pm25 : a.pm25 - b.pm25;
     });
-
-    const getColor = (pm25: number): string => {
-        if (pm25 < 15) return "#10B981";
-        if (pm25 < 35) return "#F59E0B";
-        return "#EF4444";
-    };
 
     return (
         <div>
@@ -220,7 +215,7 @@ function RankingList({ records, sortOrder, setSortOrder, searchQuery, setSearchQ
                             textAlign: "right",
                             fontSize: "14px",
                             fontWeight: "700",
-                            color: getColor(record.pm25),
+                            color: getAirQualityColor(record.pm25),
                         }}
                     >
                         {Math.round(record.pm25 * 10) / 10}
@@ -241,6 +236,13 @@ export default function Ranking({onStationSelect}:RankingProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [records, setRecords] = useState<RankingRecord[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024);
+
+    useEffect(() => {
+        const handleResize = () => setIsSmallScreen(window.innerWidth <= 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const loadStations = async () => {
@@ -277,9 +279,9 @@ export default function Ranking({onStationSelect}:RankingProps) {
                 bottom: 0,
                 left: "50%",
                 transform: "translateX(-50%)",
-                zIndex: 1000,
-                width: "25%",
-                maxWidth: "600px",
+                zIndex: open && isSmallScreen ? 2000 : 1001,
+                width: isSmallScreen ? "100%" : "25%",
+                maxWidth: isSmallScreen ? "none" : "600px",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -290,14 +292,15 @@ export default function Ranking({onStationSelect}:RankingProps) {
                 style={{
                     width: "100%",
                     background: "white",
-                    borderRadius: "12px 12px 0 0",
-                    boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
+                    borderRadius: isSmallScreen ? "20px 20px 0 0" : "12px 12px 0 0",
+                    boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
                     overflow: "hidden",
                     transform: open
                         ? "translateY(0)"
-                        : "translateY(calc(100% - 44px))",
-                    transition: "transform 0.3s ease",
+                        : isSmallScreen ? "translateY(calc(100% - 50px))" : "translateY(calc(100% - 44px))",
+                    transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
                     pointerEvents: "auto",
+                    height: open && isSmallScreen ? "80dvh" : "auto",
                 }}
             >
                 <button
@@ -307,12 +310,12 @@ export default function Ranking({onStationSelect}:RankingProps) {
                         width: "100%",
                         background: "white",
                         border: "none",
-                        padding: "8px 0",
+                        padding: isSmallScreen ? "12px 0" : "8px 0",
                         cursor: "pointer",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        gap: "4px",
+                        gap: "6px",
                         transition: "all 0.2s ease",
                     }}
                 >
@@ -322,16 +325,18 @@ export default function Ranking({onStationSelect}:RankingProps) {
                             height: "4px",
                             background: "#17C1DF",
                             borderRadius: "2px",
+                            opacity: 0.6
                         }}
                     />
 
                     <span
                         style={{
-                            fontSize: 13,
+                            fontSize: isSmallScreen ? 14 : 13,
                             letterSpacing: "1px",
-                            fontWeight: "600",
-                            color: "#444",
+                            fontWeight: "700",
+                            color: "#333",
                             fontFamily: "'Poppins', sans-serif",
+                            textTransform: "uppercase"
                         }}
                     >
                         Stations Ranking
@@ -341,8 +346,9 @@ export default function Ranking({onStationSelect}:RankingProps) {
                 <div
                     style={{
                         padding: "16px",
+                        height: isSmallScreen ? "calc(80dvh - 60px)" : "auto",
                         minHeight: "220px",
-                        maxHeight: "550px",
+                        maxHeight: isSmallScreen ? "none" : "550px",
                         overflowY: "auto",
                         overflowX: "hidden",
                     }}

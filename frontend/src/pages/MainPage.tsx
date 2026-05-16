@@ -17,6 +17,7 @@ import { fetchStations, type Station } from "../services/FetchStations.ts";
 import {fetchMeasurements, type Measurement} from "../services/FetchMeasurements.ts";
 import { fetchPm25Predict, type Predictions } from "../services/FetchPm25Predict.ts";
 import {getIcon} from "../utils/IconParser.tsx";
+import { getStationIconSvg } from "../utils/AirQualityColor.ts";
 import Scale from "../components/Scale.tsx";
 import GpsButton from "../components/GpsButton.tsx";
 import RefreshButton from "../components/RefreshButton.tsx";
@@ -39,13 +40,17 @@ export default function MainPage({ onError }: MainPageProps) {
     const [weather, setWeather] = useState<Weather | null>(null);
     const [predict, setPredict] = useState<Predictions | null>(null);
     const [isPredictLoading, setIsPredictLoading] = useState<boolean>(false);
+    const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024);
 
-    const greenIcon = getIcon("greenStateIcon");
-    const redIcon = getIcon("redStateIcon");
-    const yellowIcon = getIcon("yellowStateIcon");
     const markerIcon = getIcon("markerIcon");
 
     const viewerRef =  useRef<any>(null);
+
+    useEffect(() => {
+        const handleResize = () => setIsSmallScreen(window.innerWidth <= 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
 
     useEffect(() => {
@@ -101,14 +106,22 @@ export default function MainPage({ onError }: MainPageProps) {
         setPredict(null);
         setIsPredictLoading(true);
 
+        try {
+            const [measurements, weatherData] = await Promise.all([
+                fetchMeasurements(station.id),
+                FetchWeather(station.id)
+            ]);
 
-        fetchMeasurements(station.id).then(setSelectedMeasurements);
-        FetchWeather(station.id).then(setWeather);
+            setSelectedMeasurements(measurements);
+            setWeather(weatherData);
 
-        fetchPm25Predict(station.id).then(predictData => {
+            const predictData = await fetchPm25Predict(station.id);
             setPredict(predictData);
+        } catch (error) {
+            console.error("Error fetching station data:", error);
+        } finally {
             setIsPredictLoading(false);
-        }).catch(() => setIsPredictLoading(false));
+        }
     };
 
 
@@ -118,11 +131,7 @@ export default function MainPage({ onError }: MainPageProps) {
 
         const val = liveVal ?? station.last_pm25;
 
-        if (val === null || val === undefined) return greenIcon;
-
-        if (val <= 12) return greenIcon;
-        if (val <= 35) return yellowIcon;
-        return redIcon;
+        return getStationIconSvg(val);
     }
 
     const handleGps = ({ lat, lng }: { lat: number; lng: number }) => {
@@ -208,38 +217,48 @@ export default function MainPage({ onError }: MainPageProps) {
                     );
                 })}
                 <div className={styles.controls}>
-
                     <div className={styles.controlsTop}>
                         <SearchBar/>
                         <RefreshButton onStationsUpdate={setStations}/>
                         <HomeButton/>
                     </div>
-
-                    {selectedStation && (
-                        <CityPanel
-                            onClose={() => {
-                                setSelectedStation(null);
-                                setSelectedMeasurements([]);
-                                setWeather(null);
-                                setPredict(null);
-                                setIsPredictLoading(false);
-                            }}
-                            station={selectedStation}
-                            measurements={selectedMeasurements}
-                            weather={weather}
-                            pm25Predictions={predict}
-                            isPredictLoading={isPredictLoading}
-                        />
+                    {isSmallScreen && (
+                        <div className={styles.mobileExtras}>
+                            <Scale />
+                            <div className={styles.mobileExtrasButtons}>
+                                <GpsButton onGps={handleGps} onError={onError} />
+                                <DirectionArrow degree={weather?.wind_deg} />
+                            </div>
+                        </div>
                     )}
                 </div>
 
+                {selectedStation && (
+                    <CityPanel
+                        onClose={() => {
+                            setSelectedStation(null);
+                            setSelectedMeasurements([]);
+                            setWeather(null);
+                            setPredict(null);
+                            setIsPredictLoading(false);
+                        }}
+                        station={selectedStation}
+                        measurements={selectedMeasurements}
+                        weather={weather}
+                        pm25Predictions={predict}
+                        isPredictLoading={isPredictLoading}
+                    />
+                )}
+
                  <Ranking onStationSelect={handleStationClick} />
 
-                <div className={styles.controlsBottomRight}>
-                    <Scale />
-                    <GpsButton onGps={handleGps} onError={onError} />
-                    <DirectionArrow degree={weather?.wind_deg} />
-                </div>
+                {!isSmallScreen && (
+                    <div className={styles.controlsBottomRight}>
+                        <Scale />
+                        <GpsButton onGps={handleGps} onError={onError} />
+                        <DirectionArrow degree={weather?.wind_deg} />
+                    </div>
+                )}
             </Viewer>
         </div>
     );

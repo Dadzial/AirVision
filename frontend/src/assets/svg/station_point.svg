@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="527" height="527" viewBox="0 0 527 527" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="gradient_1" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="matrix(0 256 -256 0 256 256)">
+      <stop offset="0" stop-color="#8DF024" />
+      <stop offset="1" stop-color="#61CC21" stop-opacity="0.498" />
+    </radialGradient>
+    <filter color-interpolation-filters="sRGB" x="-510" y="-510" width="512" height="512" id="filter_2">
+      <feFlood flood-opacity="0" result="BackgroundImageFix_1" />
+      <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix_1" result="Shape_2" />
+      <feGaussianBlur stdDeviation="2.5" />
+    </filter>
+  </defs>
+  <path d="M0 256C0 114.615 114.615 0 256 0C397.385 0 512 114.615 512 256C512 397.385 397.385 512 256 512C114.615 512 0 397.385 0 256Z" fill="url(#gradient_1)" fill-rule="evenodd" filter="url(#filter_2)" transform="translate(7.5 7.5)" />
+</svg>
